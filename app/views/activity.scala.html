@@ -1,0 +1,759 @@
+@(message: String)(a: Activity)(terms: Article)(tt: List[TicketType])(apiKey: String)
+
+@main(a.brief_description) {
+    <style>.btn{height:inherit;}</style>
+    <script src='https://www.google.com/recaptcha/api.js?hl=zh-CN' hl="zh-CN" ></script>
+
+    <script src="https://checkout.stripe.com/checkout.js"></script>
+    <script language="javascript">
+
+
+	document.onkeypress = stopRKey; 
+
+	$('purchase_form').attr('autocomplete', 'off');
+
+	// Close Checkout on page navigation
+	$(window).on('popstate', function() {
+		handler.close();
+	});
+
+
+ @if(apiKey == "preview") {
+    function publish(){
+        $.rest("GET", "/api/v1/publish/@a.id", {}, function(result){ location.reload(true); }, function(error){ alert(error.responseText);});
+    }
+}
+	var tickTypes = {
+			@for(t <- tt) {
+        "@t.type_name" : { price: @t.price, text: "@t.type_name ($@t.price)"  @if(!t.taxIncluded) {+ " +5% Tax"
+	        }, currency:'@t.currency', remain:'@(t.quantity - t.booked)', taxIncluded: @t.taxIncluded},
+			}};
+
+	var handler = StripeCheckout.configure({key: '@apiKey',image: '/assets/images/favicon.png'});
+
+	$(function(){
+
+	    $('input[name="type"]:radio').change(function(){
+	        var selectedType = $('input[name=type]').filter(':checked');
+		    var type_name = selectedType.val();
+		    if (null==type_name){
+                return false;
+            }
+
+            var numberCouldSelect = tickTypes[type_name].remain;
+            numberCouldSelect = numberCouldSelect> 10? 10: numberCouldSelect;
+
+            $("#quantity option").remove();
+            
+            for(var i = 1 ; i<= numberCouldSelect; i++){
+                $("#quantity").append($("<option></option>").attr("value", i).text(i));
+            }
+
+
+            if(tickTypes[type_name].price >0){
+                $("#recaptcha-div").hide();
+            }
+            else
+            {
+                $("#recaptcha-div").show();
+            }
+
+	    });
+	});
+
+	function checkEmail()
+	{
+		var email = window.loginUser;
+		if(email == null || email === ""){
+		   alert("请先填写电子邮箱");
+		   return false;
+		}
+
+		return true;
+	}
+
+	function checkAge()
+	{
+
+		if($("#age").is(":visible"))
+		{
+			if(isNaN($("#age").val()))
+			{
+				alert("年龄需要为整数！");
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	function checkTel()
+	{
+
+		if($("#tel").is(":visible"))
+		{
+			//test if the age is number
+			if(isNaN($("#tel").val()))
+			{
+				alert("电话需要全为数字！");
+				return false;
+			}
+
+			//test if the age is 10-digit
+			if($("#tel").val().length!==10)
+			{
+				alert("电话需要为十位数字！");
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	function checkUserInfo()
+	{
+		var info_type = ["name", "tel", "gender", "age", "address"];
+
+		for(var type in info_type)
+		{
+			if((($("#"+info_type[type]).is(":visible"))&&(($("#"+info_type[type]).val()=="")||($("#"+info_type[type]).val()==="0")||($("#"+info_type[type]).val()==null))))
+			{
+				alert("请填写信息");
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	//the function that interact with stripe to buy the tickets
+	function processPayment(){
+
+        var validator = $('#purchase_form').data('bootstrapValidator');
+		validator.validate();
+		if(!validator.isValid())
+		{
+		    return;
+		}
+		if(!checkEmail() || !checkAge() || !checkTel() || !checkUserInfo())
+		{
+			return false;
+		}
+
+		var selectedType = $('input[name=type]').filter(':checked');
+		var type_name = selectedType.val();
+
+
+		if (null==type_name){
+			alert("请选择票类型");
+			return false;
+		}
+
+		var theEmail = $("#email").val();
+		var quantity = parseInt($("#quantity").val());
+		var paymentDescription =  tickTypes[type_name].text;
+
+		if ( isNaN(quantity) || quantity > tickTypes[type_name].remain)
+		{
+			alert("余票不足！");
+			return false;
+		}
+
+		if(quantity > 1){
+			paymentDescription = paymentDescription + ' X' + quantity;
+		}
+
+        var totalAmount;
+		if(tickTypes[type_name].taxIncluded == false){
+		totalAmount = Math.round(tickTypes[type_name].price * 1.05 * quantity * 100);
+		}else
+		totalAmount = Math.round(tickTypes[type_name].price * quantity * 100);
+
+        var handlePaymentInfo = function(token){
+            $('#payment').modal('show');
+
+            $("#payment_label").html("请稍候");
+            $("#payment_message").html("正在提交个人信息,请稍候...");
+
+            updateUserInfo(function(){
+                $("#payment_label").html("请稍候");
+                $("#payment_message").html("正在出票,请稍候...");
+
+                var data ={"activity_id": "@a.id", "type_name": type_name, "quantity": quantity, "token": token.id};
+
+                $.rest("GET", "/api/v1/createTicket", data, function(data){
+                    console.log("payment successful");
+                    $("#payment_message").html("<a class='btn btn-lg btn-info btn-block' href='/tickets' role='button'>查看我的票夹</a>");
+                    $("#payment_label").html("出票成功");
+                },
+                function(data){
+                    $("#payment_label").html("出票失败.");
+                    $("#payment_message").html(data.responseText);
+                });
+            });
+        };
+
+        if(totalAmount >0)
+        {
+            handler.open({
+                name: '@a.name',
+                description: paymentDescription,
+                amount: totalAmount,
+                currency: tickTypes[type_name].currency,
+                email: theEmail,
+                allowRememberMe: false,
+                token: handlePaymentInfo
+            });
+        }
+        else
+        {
+
+            var captchaResponse = $("#g-recaptcha-response").val()
+            handlePaymentInfo({id:captchaResponse});
+        }
+
+	}
+
+	//before purchase the ticket, we need to update users' information if they add new things
+	function updateUserInfo(successHandler){
+
+		var info_type = ["name", "tel", "gender", "age", "address"];
+		var update_field={};
+
+		for(var type in info_type)
+		{
+			var name = info_type[type];
+			if(!name) continue;
+			var val = $("#"+(info_type[type])).val();
+			val =  (val == null) ? "" : val;
+			update_field[name]=val;
+		}
+
+		$.rest("PUT", "/api/v1/user/info", update_field, successHandler, function(data){ $("#payment_label").html("个人信息更新出错.");
+                        $("#payment_message").html("个人信息更新出错."); });
+	} 
+
+</script>
+
+    <form class="form-horizontal" id="purchase_form" onsubmit="return false;"
+    data-bv-message="This value is not valid"
+    data-bv-feedbackicons-valid="glyphicon glyphicon-ok"
+    data-bv-feedbackicons-invalid="glyphicon glyphicon-remove"
+    data-bv-feedbackicons-validating="glyphicon glyphicon-refresh"
+    data-bv-live="enabled">
+        <div class="modal fade" id="payment" tabindex="-1" role="dialog"
+        aria-labelledby="myModalLabel" aria-hidden="true">
+            <div class="vertical-alignment-helper">
+                <div class="modal-dialog vertical-align-center">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal"
+                            aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                            <h4 class="modal-title" id="payment_label">请稍候</h4>
+                        </div>
+                        <div class="modal-body" id="payment_message">正在出票,请稍候...</div>
+                            <!--<div class="modal-footer">
+						<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+					</div>-->
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row section">
+
+            @if(apiKey == "preview") {
+                <div class="alert alert-warning centerAlign" role="alert"><strong>预览模式</strong>
+                    @if(!User.CurrentUser().IsAdministrator() && a.status == Activity.STATUS_UNPUBLISH){
+                        <button class="btn btn-sm btn-primary admin-controller" onclick="publish()" role="button">发布</button>
+                    }
+                    @if(!User.CurrentUser().IsAdministrator() && a.status == Activity.STATUS_REQUEST_PUBLISH) {
+                        (待审核)
+                    }
+                    @if(User.CurrentUser().IsAdministrator() && a.status == Activity.STATUS_REQUEST_PUBLISH) {
+                        <button class="btn btn-sm btn-primary admin-controller" onclick="publish()" role="button">通过审核</button>
+                    }
+                </div>
+            }
+
+            <div class="col-sm-6 col-md-7 col-xs-12">
+                <div class="jumbotron">
+                    <div class="grid-view formMargin row">
+                        <div class="form-group form-group-sm col-sm-12">
+                            <center>
+                                <img src="@a.image" class="img-responsive">
+                            </center>
+                        </div>
+
+                        <div class="form-group form-group-sm">
+                            <div class="col-sm-12 col-xs-12 ">
+                                <center>
+                                    <div class="col-sm-12 col-xs-12">
+                                        <h1 class="title">@a.name</h1>
+                                    </div>
+                                </center>
+                            </div>
+                        </div>
+
+                        <div class="form-group form-group-sm">
+                            <label class="col-md-2 control-label" for="formGroupInputSmall">时间：</label>
+                            <div class="col-md-10">
+                                <label class=" leftAlign">@a.date_time</label>
+                            </div>
+                        </div>
+                        <div class="form-group form-group-sm">
+                            <label class="col-md-2 control-label" for="formGroupInputSmall">地点：</label>
+                            <div class="col-md-10">
+                                <label class=" leftAlign">@a.GetVenueFull()</label>
+                            </div>
+                        </div>
+
+                        <div class="form-group form-group-sm">
+                            <label class="col-md-2 control-label" for="formGroupInputSmall">详情：</label>
+                            <div class="col-md-10">
+                                <label class="">@Html(a.description)</label>
+                            </div>
+                            <div class="col-md-offset-2 col-md-10">
+                                <center><img class="img-responsive" src="@a.description_image" ></center>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-md-5 col-xs-12">
+                <div class="jumbotron">
+                    <div class="section grid-view formMargin">
+                        <div class="form-group form-group-sm">
+                            <label class="col-sm-12 col-xs-12 control-label">
+                                <h3 class="title">立即订票</h3>
+                            </label>
+                        </div>
+
+                        <div class="form-group form-group-sm">
+                            <div class="col-md-3 col-sm-4 col-xs-12 control-label ">
+                                <label>类别：</label>
+                            </div>
+                            <div class="col-md-9 col-sm-8 col-xs-12">
+                            @for(t <- tt) {
+                                <div class="radio">
+                                        <!-- 席位                   @t.quantity 货币@t.currency -->
+                                    <label><input type="radio" name="type"
+                                    value="@t.type_name"> @t.type_name ($@t.price) &nbsp;
+                                        余票:@(t.quantity - t.booked)&nbsp; 已购买:@t.booked
+                                    </label>
+                                </div>
+                            }
+                            </div>
+                        </div>
+
+                        <div class="form-group form-group-sm">
+                            <div class="col-md-3 col-sm-4 col-xs-12 control-label ">
+                                <label>数量：</label>
+                            </div>
+                            <div class="col-md-9 col-sm-8 col-xs-12">
+                                <div>
+                                    <select class="form-control" id="quantity">
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section grid-view formMargin removeBottom">
+                        <div class="form-group form-group-sm">
+                            <label class="col-sm-12 col-xs-12 control-label">
+                                <h3 class="title">个人信息</h3>
+                            </label> <label class="col-sm-12 control-label" id="user-info"></label>
+                        </div>
+
+                        <form class="form-horizontal" id="purchase-login-form"
+                        onsubmit="return false;">
+                            <div class="form-group form-group-sm">
+                                <div class="col-md-3 col-sm-4 col-xs-12 control-label">
+                                    <label class="control-label">邮箱：</label>
+                                </div>
+                                <div class="col-md-9 col-sm-8 col-xs-12">
+                                    <input class="form-control" type="email" name="email" id="email"
+                                    placeholder="" data-bv-notempty data-bv-notempty-message="邮箱为必填项">
+                                </div>
+                            </div>
+
+                            <div class="form-group form-group-sm">
+
+                                <div class="col-md-offset-3 col-md-9 col-sm-offset-4 col-sm-8 col-xs-12 logout-form-div">
+                                    <button class="logout-button btn btn-danger btn-block btn-lg">退出</button>
+                                </div>
+                            </div>
+
+                            <div class="form-group form-group-sm" id="password-div">
+                                <div class="col-md-3 col-sm-4 col-xs-12 control-label ">
+                                    <label class="control-label">密码：</label>
+                                </div>
+                                <div class="col-md-9 col-sm-8 col-xs-12">
+                                    <input class="form-control" type="password" name="password"
+                                    id="password" placeholder="" data-bv-notempty data-bv-notempty-message="密码不能为空">
+                                </div>
+                            </div>
+
+                            <div class="form-group form-group-sm" id="confirm-password-div">
+                                <div class="col-md-3 col-sm-4 col-xs-12 control-label ">
+                                    <label class="control-label">确认密码：</label>
+                                </div>
+                                <div class="col-md-9 col-sm-8 col-xs-12">
+                                    <input class="form-control" type="password"
+                                    name="confirm-password" id="confirm-password" placeholder="" data-bv-notempty data-bv-notempty-message="密码不能为空">
+                                </div>
+                            </div>
+
+                            <div id="name-div" class="form-group form-group-sm btel_@a.bname">
+                                <div class="col-md-3 col-sm-4 col-xs-12 control-label">
+                                    <label class="control-label">姓名：</label>
+                                </div>
+                                <div class="col-md-9 col-sm-8 col-xs-12">
+                                    <input class="form-control" type="text" name="name" id="name" placeholder="名字" data-bv-notempty>
+                                </div>
+                            </div>
+
+                            <div id="tel-div" class="form-group form-group-sm btel_@a.btel">
+                                <div class="col-md-3 col-sm-4 col-xs-12 control-label">
+                                    <label class="control-label">电话：</label>
+                                </div>
+                                <div class="col-md-9 col-sm-8 col-xs-12">
+                                    <input class="form-control" type="text" name="tel" id="tel" placeholder="电话"
+                                    data-bv-notempty
+                                    minLength="10" maxlength="10" data-bv-stringlength-message="请输入10位数的电话号码">
+                                </div>
+                            </div>
+
+                            <div id="gender-div"
+                            class="form-group form-group-sm bgender_@a.bgender">
+                                <div class="col-md-3 col-sm-4 col-xs-12 control-label">
+                                    <label class="control-label">性别：</label>
+                                </div>
+                                <div class="col-md-9 col-sm-8 col-xs-12">
+                                    <div>
+                                        <select class="form-control" name="gender" id="gender" data-bv-notempty>
+                                            <option disabled selected> -- 选择性别 -- </option>
+                                            <option value="male">男</option>
+                                            <option value="female">女</option>
+                                        </select>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="age-div" class="form-group form-group-sm bage_@a.bage">
+                                <div class="col-md-3 col-sm-4 col-xs-12 control-label">
+                                    <label class="control-label">年龄：</label>
+                                </div>
+                                <div class="col-md-9 col-sm-8 col-xs-12">
+                                    <input class="form-control" type="text" name="age" id="age"
+                                    min="0"
+                                    data-bv-greaterthan-message="请输入合理的年龄"
+                                    max="150"
+                                    data-bv-lessthan-message="请输入合理的年龄"  placeholder="" data-bv-notempty>
+                                </div>
+                            </div>
+
+                            <div id="address-div"
+                            class="form-group form-group-sm baddress_@a.baddress">
+                                <div class="col-md-3 col-sm-4 col-xs-12 control-label">
+                                    <label class="control-label">地址：</label>
+                                </div>
+                                <div class="col-md-9 col-sm-8 col-xs-12">
+                                    <input class="form-control" type="text" name="address" id="address" placeholder="" data-bv-notempty>
+                                </div>
+                            </div>
+
+                            <div class="form-group form-group-sm centerAlign" id="user-verify-div">
+                                <label class="col-sm-12 control-label" id="user-alert" style="display: block; text-align: center;"><span class='worning'>用户邮箱未验证！微票网建议您验证邮箱以便在邮箱查收票据</span></label>
+                                <label class="col-sm-12 control-label" id="verification-email-resent" style="display: block; text-align: center;"><a href="#">点击重新发送验证邮件</a></label>
+                            </div>
+
+                            <div class="form-group form-group-sm" id="check-clause-div">
+                                <div class="col-md-3 col-sm-4 col-xs-12 control-label rightAlign">
+                                    <label class="control-label"></label>
+                                </div>
+                                <div class="col-md-9 col-sm-8 col-xs-12">
+                                    <div class="checkbox">
+                                        <label><input type="checkbox" value="" id="check-clause"
+                                        checked>我已阅读并同意微票网的<a data-toggle="modal"
+                                        data-target="#myModal">服务条款</a></label>
+                                            <!-- Modal -->
+                                        <div id="myModal" class="modal fade" role="dialog">
+                                            <div class="modal-dialog">
+                                                    <!-- Modal content-->
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                                        <h4 class="modal-title">@terms.title</h4>
+                                                    </div>
+                                                    <div class="modal-body"> @Html(terms.content)</div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-default" data-dismiss="modal">确认</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="recaptcha-div" class="form-group form-group-sm" style="display : none ;">
+
+                                <div class="col-lg-offset-3 col-lg-9 col-md-12  col-sm-12 col-xs-12 ">
+                                    <div class="g-recaptcha" data-sitekey="6LfYIAkTAAAAAD6839ob7aRXIHBv9oLuu_xca2q6" class="pull-right"></div>
+                                </div>
+                            </div>
+
+                            <div class="form-group form-group-sm" id="check-clause-div">
+                                <div
+                                class="col-md-offset-3 col-md-9 col-sm-offset-4 col-sm-8 col-xs-12">
+                                    <button id="register-button"
+                                    class="btn marginBotton btn-success btn-block btn-lg ">注册</button>
+                                </div>
+                            </div>
+
+
+                        </form>
+                    </div>
+
+                    @if(apiKey == "preview") {
+
+                        <div class="row">
+                            <div class="col-md-offset-3 col-md-9">
+                                <button
+                                class="btn btn-primary btn-block btn-lg" id="">订票 (预览模式)</button>
+                            </div>
+                        </div>
+                    }else{
+                        <div class="row">
+                            <div class="row col-md-offset-3 col-md-9">
+                                <button id="confirm" onclick="processPayment()" class="btn btn-primary btn-block btn-lg" >订票</button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </form>
+
+
+    <script language="javascript">
+
+    $("#password-div").hide();
+    $("#confirm-password-div").hide();
+    $("#register-button").hide();
+    $('#check-clause-div').hide();
+    $("#user-verify-div").hide();
+
+	//fill user's information from the database
+	function fillUserInfo(){
+
+		$.rest("GET", "/api/v1/user/info", null, function(user){
+			$("#name").val(user.name);
+			$("#tel").val(user.tel);
+			$("#gender").val(user.gender);
+			$("#age").val((user.age==0)?"":user.age);
+			$("#address").val(user.address);
+			if(user.verified == 0){
+			     $("#user-verify-div").show();
+			     $("a[href='#']").attr("href", "/user/"+user.email+"/resendUserVerificationEmail");
+			}else if(user.verified == 1){
+				 $("#user-verify-div").hide();
+			}
+		}, function(data){
+			alert("获取个人信息更新出错");
+		});
+
+	}
+	
+	function clearUserInfo(){
+		
+		$("#name").val("");
+		$("#tel").val("");
+		$("#gender").val("");
+		$("#age").val("");
+		$("#address").val("");
+		$("#user-verify-div").hide();
+	}
+	
+	
+	var email = window.loginUser;
+	console.log(email);
+	if(!email || email == "")
+	{
+		$("#email").prop('disabled', false);
+		//$("#password-div").show();
+		$("#user-info").html("请在此处订票邮箱");
+		$("#user-verify-div").hide();
+	}
+	else
+	{
+		$("#email").val(email);
+		$("#email").prop('disabled', true);
+		fillUserInfo();
+	}
+
+	
+	//detect the email input, to decide if a user is a new user
+	//New User: goes to regiseter setting of layout
+	//Old User: goes to log in setting of layout
+	$("#email").bind("keyup change input keydown propertychange focusout", function(){
+		var theEmail = $("#email").val();
+		//avoid too much database search by exam if the user has already input . and AT
+		if((theEmail.indexOf(".")>0)&&(theEmail.indexOf("@@")>0) && theEmail.lastIndexOf(".") > theEmail.indexOf("@@"))
+		{
+            var data ={"email":theEmail};
+		    $.rest("GET", "/api/v1/searchEmail", data, function(data){
+		        $("#user-info").html("<span class='checking'>老用户，请输入密码登录后订票</span>");
+
+		        if(data.verified == 0){
+				  $("#user-verify-div").show();
+				  $("a[href='#']").attr("href", "/user/"+data.email+"/resendUserVerificationEmail");
+				}else if(data.verified == 1){
+				 $("#user-verify-div").hide();
+				}
+					$("#confirm").show();
+					$("#password-div").show();
+					$("#confirm-password-div").hide();
+					$("#register-button").hide();
+					$('#check-clause-div').hide();
+				},
+				function(xhr, exception){
+				if(xhr.status =="401"){
+				$("#user-info").html("新用户，请注册");
+						$("#password-div").show();
+						$("#confirm-password-div").show();
+						$("#register-button").show();
+						$('#check-clause-div').show();
+						$("#confirm").hide();
+						$("#user-verify-div").hide();
+				}else if(xhr.status =="403"){
+				$("#user-info").html("<span class='worning'>该邮箱已被封禁，请联系管理员</span>");
+						$("#password-div").hide();
+						$("#confirm-password-div").hide();
+						$('#check-clause-div').hide();
+						$("#register-button").hide();
+						$("#user-verify-div").hide();
+				}
+				});
+		}
+	});
+
+	//detect the password input if the user is a registered user
+	//once the combination of email and password matches the database record, login automatically
+	$("#password").keyup(function(){
+		var theEmail = $("#email").val();
+		var thePassword = $("#password").val();
+		
+		if(!$("#register-button").is(":visible"))
+		{
+
+		var data = {user: theEmail, password: Sha1.hash(thePassword)};
+
+		$.rest("GET", "/api/v1/login", data, function(data){
+					$("#user-info").html("<span class='success'>登录成功！</span>");
+					if(data.verified == 0){
+					  $("#user-verify-div").show();
+					  $("a[href='#']").attr("href", "/user/"+data.email+"/resendUserVerificationEmail");
+					}else if(data.verified == 1){
+				      $("#user-verify-div").hide();
+				    }
+				    window.loginuserRole = data.role;
+					window.loginUser = data.email;
+					$("#email").prop('disabled', true);
+					$("#password-div").hide();
+					$("#confirm-password-div").hide();
+					$("#register-button").hide();
+					$(".logout-form-div").show();
+					$("#login-form-div").hide();
+					$("#user-name").html(data.email);
+					$(".login-controller").show();
+					fillUserInfo();
+
+				},
+				function(data){
+					$("#user-info").html("<span class='worning'>请输入正确密码</span>");
+					$("#user-verify-div").hide();
+				});
+		}		
+	});
+	
+	//detect the confirm password in registration
+	//when password matches, display password matched and enable registration
+	$("#confirm-password").keyup(function(){
+		var thePassword = $("#password").val();
+		var theConfirmPassword = $("#confirm-password").val();
+		
+		if(thePassword!=theConfirmPassword)
+		{
+			$("#user-info").html("<span class='worning'>两次输入的密码不一致！</span>");
+			$("#register-button").hide();
+			$("#confirm").show();
+		}else
+		{
+			$("#user-info").html("<span class='success'>密码通过验证！</span>");
+			$("#register-button").show();
+			$("#confirm").hide();
+
+		}	
+	});
+
+	$("#register-button").click(function(){
+
+	    var validator = $('#purchase_form').data('bootstrapValidator');
+		validator.validate();
+		if(!validator.isValid())
+		{
+		    return;
+		}
+		var theEmail = $("#email").val();
+		var thePassword = Sha1.hash($("#password").val());
+		var name = $("#name").val();
+		var tel=$("#tel").val();
+		var age=$("#age").val();
+		var gender=$("#gender").val();
+		var address=$("#address").val();
+		var role =$("role").val();
+		
+		if($('#check-clause').is(':checked')) {
+
+		var data = {"email": theEmail, "password": thePassword, "name": name, "tel": tel, "age": age, "gender":gender, "address":address, "role":role};
+
+		$.rest("POST", "/api/v1/register", data, function(data){
+				$("#user-info").html("<span class='success'>注册成功并已经登录！</span>");
+				if(data.verified == 0){
+					 $("#user-verify-div").show();
+					 $("a[href='#']").attr("href", "/user/"+data.email+"/resendUserVerificationEmail");
+
+				}else if(data.verified == 1){
+				     $("#user-verify-div").hide();
+				}
+				window.loginUser = data.email;
+				$("#email").prop('disabled', true);
+				$("#password-div").hide();
+				$("#confirm-password-div").hide();
+				$("#register-button").hide();
+				$('#check-clause-div').hide();
+				$(".logout-form-div").show();
+				$(".login-controller").show();
+				$("#login-form-div").hide();
+				$("#user-name").html(data.email);
+				$("#confirm").show();
+
+				},
+				function(data){
+				$("#user-info").html("<span class='worning'>注册失败！</span>");
+				$("#confirm").show();
+				});
+         }
+	});
+
+	$('#purchase_form').bootstrapValidator();
+
+	
+	</script>
+}

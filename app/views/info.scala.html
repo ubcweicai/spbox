@@ -1,0 +1,24 @@
+@(title: String)(information: Html)
+
+@main(title) {
+
+	<div class="row">
+		<div class="col-sm-12">
+			<div class="jumbotron">
+				<h3>@information</h3>
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-sm-12 col-md-4 col-md-offset-2">
+			<a class="btn btn-lg btn-warning btn-block" href="javascript:WeixinJSBridge.call('closeWindow');" role="button">退出微票</a><br><br>
+		</div>
+
+		<div class="col-sm-12 col-md-4">
+			<a class="btn btn-lg btn-success btn-block" href="/" role="button">回微票主页</a>
+		</div>
+	</div>
+
+}
+
+

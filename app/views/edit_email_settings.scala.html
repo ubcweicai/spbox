@@ -1,0 +1,151 @@
+@(message: String)(a: Activity)
+<style>.btn{height:inherit;}</style>
+<form class="form-horizontal" onsubmit="return false;" id="setting-form"
+data-bv-message="This value is not valid"
+data-bv-feedbackicons-valid="glyphicon glyphicon-ok"
+data-bv-feedbackicons-invalid="glyphicon glyphicon-remove"
+data-bv-feedbackicons-validating="glyphicon glyphicon-refresh">
+
+	<div class="modal-header">
+		<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+		<h4 class="modal-title" id="myModalLabel">邮件设置 - @if(a!=null){@a.name}</h4>
+	</div>
+	<div class="modal-body">
+
+			<div class="form-group form-group-sm">
+				<label class="col-sm-2 control-label" for="emailToBuyer">发送邮件给订购者</label>
+				<div class="col-lg-9">
+					<div class="btn-group" data-toggle="buttons">
+						<label class="btn btn-default @if(a.IsEmailToBuyerEnabled()){ active }">
+							<input type="radio" name="emailToBuyer" value="true"   @if(a.IsEmailToBuyerEnabled()){ checked } data-fv-notempty /> 开启
+						</label>
+						<label class="btn btn-default @if(!a.IsEmailToBuyerEnabled()){ active }"  >
+							<input type="radio" name="emailToBuyer" value="false" @if(!a.IsEmailToBuyerEnabled()){ checked }  data-fv-notempty/> 关闭
+						</label>
+					</div>
+				</div>
+			</div>
+			<div class="form-group form-group-sm">
+				<label class="col-sm-2 control-label" for="emailToOrganizer">发送邮件给活动组织者</label>
+				<div class="col-lg-9">
+					<div class="btn-group" data-toggle="buttons">
+						<label class="btn btn-default @if(a.IsEmailToOrganizerEnabled()){ active }">
+							<input type="radio" name="emailToOrganizer" value="true" @if(a.IsEmailToOrganizerEnabled()){ checked }  data-fv-notempty/> 开启
+						</label>
+						<label class="btn btn-default @if(!a.IsEmailToOrganizerEnabled()){ active }"  >
+							<input type="radio" name="emailToOrganizer" value="false" @if(!a.IsEmailToOrganizerEnabled()){ checked }  data-fv-notempty/> 关闭
+						</label>
+					</div>
+				</div>
+			</div>
+			<div class="form-group form-group-sm">
+				<label class="col-sm-2 control-label" for="isEmailCustomized">邮件格式</label>
+				<div class="col-lg-9">
+					<div class="btn-group" data-toggle="buttons">
+						<label class="btn btn-default @if(a.IsEmailCustomized()){ active }">
+							<input type="radio" name="isEmailCustomized" value="true" @if(a.IsEmailCustomized()){ checked }  data-fv-notempty/> 自定义格式
+						</label>
+						<label class="btn btn-default @if(!a.IsEmailCustomized()){ active }"  >
+							<input type="radio" name="isEmailCustomized" value="false" @if(!a.IsEmailCustomized()){ checked }  data-fv-notempty/> 系统默认格式
+						</label>
+					</div>
+				</div>
+			</div>
+
+			<div id="customized-email-group" class="form-group  @if(!a.IsEmailCustomized()){ hidden }">
+				<label class="col-sm-2 control-label">自定义邮件格式</label>
+				<div class="col-sm-10">
+					<div id="summernote" name="content"></div>
+					<textarea class="form-control" style="display:none" id="summernote_text" rows="13" name="content" placeholder="文章内容" required  data-fv-notempty data-bv-notempty-message="内容为必填项" >@a.GetCustomizedEmailTemplateContent()</textarea>
+				</div>
+			</div>
+
+
+
+	</div>
+	<div class="modal-footer">
+		<button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+		<button type="button" class="btn btn-primary" onclick="save()">保存设置</button>
+	</div>
+
+</form>
+<script>
+
+	function save(){
+		var validator = $('#setting-form').data('bootstrapValidator');
+		validator.validate();
+		if(!validator.isValid())
+		{
+		    return;
+		}
+		var payload = {
+			emailToBuyer: $('input[name=emailToBuyer]:checked', '#setting-form').val() === "true",
+			emailToOrganizer: $('input[name=emailToOrganizer]:checked', '#setting-form').val()=== "true",
+			isEmailCustomized: $('input[name=isEmailCustomized]:checked', '#setting-form').val()=== "true",
+		};
+		if(payload.isEmailCustomized){
+			payload.content = $('#summernote_text').val();
+		}
+		$.rest("PUT", '/api/v1/activity/@a.id/email-settings', payload,
+			function(){
+				 $('#emailSettings').modal('hide');
+			},
+			function(error)
+			{
+				alert("保存失败");
+			}
+		);
+	}
+
+	$(function(){
+		 $('input[type=radio][name=isEmailCustomized]').change(function() {
+			if (this.value === 'true') {
+				$("#customized-email-group").removeClass("hidden");
+			}
+			else if (this.value === 'false') {
+				$("#customized-email-group").addClass("hidden");
+			}
+		});
+
+		$('#summernote').summernote({
+		  height: 500,
+		  toolbar: [
+			['style', ['style']],
+			['font', ['bold', 'italic', 'underline', 'clear']],
+			['fontname', ['fontname']],
+			['color', ['color']],
+			['para', ['ul', 'ol', 'paragraph']],
+			['height', ['height']],
+			['table', ['table']],
+			['insert', ['link', 'picture', 'hr']],
+			['view', ['fullscreen', 'codeview']],
+			['help', ['help']]
+		  ],
+		  onImageUpload: function(files) {
+			var data = new FormData();
+			data.append("file", files[0]);
+			$.ajax({
+				data: data,
+				type: "POST",
+				url: "/api/v1/image",
+				cache: false,
+				contentType: false,
+				processData: false,
+				success: function(url) {
+					$('#summernote').summernote('editor.insertImage', url);
+				},
+				error: function(){
+					alert("Failed to upload image");
+				}
+			});
+		  }
+		});
+		$('#summernote').on('summernote.change', function(customEvent, contents, $editable) {
+			$("#summernote_text").val($("#summernote").code());
+		});
+		$("#summernote").code($("#summernote_text").val());
+		$('#setting-form').bootstrapValidator()
+	});
+	</script>
+
+

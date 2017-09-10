@@ -1,0 +1,158 @@
+
+#ticketContainer{
+	margin-top:20px;
+	
+}
+
+#ticket .ticketWrapper
+{
+
+	min-width:80%;
+	max-width:300px;
+	margin:auto;
+	text-align:center;
+	color:white;
+	margin-bottom:2em;
+}
+
+#ticket .ticketBlock
+{
+	
+}
+
+#ticket .ticketBlock .activityName{
+	margin:0;
+}
+#ticket .ticketBlock .ticketType{
+	margin:0;
+	position:absolute;
+	left:30px;
+	bottom:10px;
+	width:40%;
+}
+#ticket .activityImg{
+	width:100%;
+}
+
+#ticket .qrcode{
+	width:100%;
+}
+
+#ticket .ticketBlock{
+	position:relative;
+}
+#ticket .checkStamp{
+	position:absolute;
+	width:50%;
+	left:10px;
+	top:8px;
+}
+
+#ticket .smallTicket{
+	height:127px;
+	background-color:black;
+	border:20px solid black;
+	border-radius: 20px;
+	-moz-border-radius: 20px;
+	-wekit-border-radius: 20px;
+	position:relative;
+}
+
+#ticket .smallTicketRight
+{
+	position:absolute;
+	right:-20px;
+	top:30px;
+
+	border:#f9f9f9 solid 15px;
+	border-right: none;
+
+	border-radius: 15px 0 0 15px;
+	-moz-border-radius: 15px 0 0 15px;
+	-wekit-border-radius: 15px 0 0 15px;
+}
+
+#ticket .smallTicket p{
+	font-size:small;
+	margin:0.3em 0;
+}
+
+#ticket .smallTicket h3 {
+	margin-top: 0;
+}
+
+
+#ticket .topShape
+{
+
+	height:0;
+	background-color:black;
+	border:black 15px solid;
+
+	border-radius: 30px 30px 0 0;
+	-moz-border-radius: 30px 30px 0 0;
+	-wekit-border-radius: 30px 30px 0 0;
+}
+#ticket .topDotShape
+{
+	margin: -15px auto 0 auto;
+	border: solid #f9f9f9 15px;
+	border-top: none;
+
+	width:0;
+	height:0;
+
+	border-radius: 0 0 30px 30px;
+	-moz-border-radius: 0 0 30px 30px;
+	-wekit-border-radius: 0 0 30px 30px;
+
+}
+#ticket .botShape
+{
+
+	height:0;
+	background-color:black;
+	border:black 15px solid;
+
+	border-radius: 0 0 30px 30px;
+	-moz-border-radius: 0 0 30px 30px;
+	-wekit-border-radius: 0 0 30px 30px;
+}
+
+#ticket .splitShape
+{
+
+	height:20px;
+	background-color: black;
+	font-size:30px;
+}
+#ticket .splitDots
+{
+	position:relative;
+	top:-10px;
+
+}
+#ticket .splitLeft
+{
+	border:10px #f9f9f9 solid;
+	border-left:none;
+	float:left;
+
+	border-radius: 0 10px 10px 0;
+	-moz-border-radius:  0 10px 10px 0;
+	-wekit-border-radius:  0 10px 10px 0;
+
+}
+
+#ticket .splitRight
+{
+	border:10px #f9f9f9 solid;
+	border-right:none;
+	float:right;
+
+
+	border-radius: 10px 0 0 10px;
+	-moz-border-radius: 10px 0 0 10px;
+	-wekit-border-radius: 10px 0 0 10px;
+}
+

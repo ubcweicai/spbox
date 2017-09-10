@@ -1,0 +1,64 @@
+.eventHeader {
+    border-bottom: 2px #f8a63a solid ;
+    padding-top: 10px;
+}
+
+.eventHeader span
+{
+    color:white;
+    background-color:#f8a63a;
+    margin-right: 0.5em;
+    padding:2px 0.5em;
+}
+
+
+
+#create-form .orange_btn
+{
+    background-color:#f8a63a;
+    width:100%;
+    color:white;
+}
+
+#create-form .btn:hover
+{
+    color:black;
+}
+
+#create-form .red_btn
+{
+    background-color:rgb(217, 83, 79);
+    width:100%;
+    color:white;
+}
+
+#create-form .red_btn_small
+{
+    height:30px;
+    width:100%;
+}
+
+
+#create-form .form-group,
+#create-form .row
+{
+    margin-left:0;
+    margin-right:0;
+}
+
+.no_feedback_icon .form-control-feedback
+{
+    display:none !important;
+}
+
+.file_input_block .btn-file
+{
+    background-color:#e8962a;
+    height:30px;
+}
+
+.datetimepicker .active
+{
+    background-image:none !important;
+    background-color:#e8962a !important;
+}

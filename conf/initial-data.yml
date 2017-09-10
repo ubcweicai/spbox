@@ -1,0 +1,153 @@
+# Users
+
+users:
+
+    - !!models.User
+        email:      bob@example.com
+        name:       Guillaume Bort
+        password:   secret
+    
+    - !!models.User
+        email:      jane@example.com
+        name:       Maxime Dantec
+        password:   secret
+    
+    - !!models.User
+        email:      jeff@example.com
+        name:       Sadek Drobi
+        password:   secret
+    
+# Activitys
+
+activities:
+
+    - !!models.Activity
+        id:         1
+        name:       Play 2.0   
+        folder:     Play framework
+        members:
+            - !!models.User
+                email: bob@example.com
+            - !!models.User
+                email: jane@example.com
+            - !!models.User
+                email: jeff@example.com
+
+    - !!models.Activity
+        id:         2
+        name:       Play 1.2.4
+        folder:     Play framework
+        members:
+            - !!models.User
+                email: bob@example.com
+            - !!models.User
+                email: jane@example.com
+            - !!models.User
+                email: jeff@example.com
+                
+    - !!models.Activity
+        id:         3
+        name:       Website 
+        folder:     Play framework
+        members:
+            - !!models.User
+                email: bob@example.com
+            - !!models.User
+                email: jane@example.com
+            - !!models.User
+                email: jeff@example.com
+
+    - !!models.Activity
+        id:         4
+        name:       Secret Activity 
+        folder:     Zenexity
+        members:
+            - !!models.User
+                email: bob@example.com
+            - !!models.User
+                email: jane@example.com
+            - !!models.User
+                email: jeff@example.com
+                
+    - !!models.Activity
+        id:         5
+        name:       Playmate
+        folder:     Zenexity
+        members:
+            - !!models.User
+                email: bob@example.com
+            - !!models.User
+                email: jane@example.com
+            - !!models.User
+                email: jeff@example.com
+            
+    - !!models.Activity
+        id:         6
+        name:       Things to do
+        folder:     Personal
+        members:
+            - !!models.User
+                email: jane@example.com
+            - !!models.User
+                email: jeff@example.com
+
+    - !!models.Activity
+        id:         7
+        name:       Play samples
+        folder:     Zenexity
+        members:
+            - !!models.User
+                email: jane@example.com
+            - !!models.User
+                email: jeff@example.com
+                
+                
+# Ticket
+
+tickets:
+    
+    - !!models.Ticket
+        title:      Fix the documentation
+        done:       false
+        folder:     Todo
+        activity:    !!models.Activity
+                        id: 1
+        assignedTo: !!models.User
+                        email: bob@example.com
+                        
+    - !!models.Ticket
+        title:      Prepare the beta release
+        done:       false
+        folder:     Urgent
+        dueDate:    2011-11-15
+        activity:    !!models.Activity
+                        id: 1
+        assignedTo: !!models.User
+                        email: bob@example.com
+
+    - !!models.Ticket
+        title:      Buy some milk
+        done:       false
+        folder:     Todo
+        activity:    !!models.Activity
+                        id: 3
+
+    - !!models.Ticket
+        title:      Check 1.2.4-RC2
+        done:       false
+        folder:     Todo
+        dueDate:    2011-11-18
+        activity:    !!models.Activity
+                        id: 2
+        assignedTo: !!models.User
+                        email: bob@example.com
+                        
+    - !!models.Ticket
+        title:      Finish zenTicket integration
+        done:       true
+        folder:     Todo
+        dueDate:    2011-11-15
+        activity:    !!models.Activity
+                        id: 7
+        assignedTo: !!models.User
+                        email: bob@example.com

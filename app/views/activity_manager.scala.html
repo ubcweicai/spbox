@@ -1,0 +1,222 @@
+@(message: String)(activity: List[Activity])
+
+@main(message) {
+    <script>
+function starChange(id)
+{
+		$.rest("PUT", "/api/v1/changeStar/" + id, {}, function(data){
+		       /*
+		       if(data.response == "true"){
+		            //$("#star-activity-"+id).text("已置顶");
+					$("#star-activity-"+id).addClass("star_true");
+					$("#star-activity-"+id).removeClass("star_false");
+		        }else if(data.response == "false")
+				{
+					//$("#star-activity-"+id).text("未置顶");
+					$("#star-activity-"+id).removeClass("star_true");
+					$("#star-activi-"+id).addClass("star_false");
+				}
+				*/
+				    window.location.href="/activity_manager";
+				},
+				function(data){
+					alert("置顶出错！");
+				});
+}
+</script>
+
+<div class="jumbotron">
+
+    <div class="row activity-manager-controller">
+
+
+            <div class="btn-group" data-toggle="buttons">
+
+                <label class="btn filter-btn filter-quarter @if(!User.CurrentUser().IsAdministrator()){active}">
+                    <input type="checkbox" autocomplete="off" id="tag-@Activity.STATUS_UNPUBLISH"  @if(!User.CurrentUser().IsAdministrator()){checked}> 草稿
+                </label>
+                <label class="btn filter-btn filter-quarter active">
+                    <input type="checkbox" autocomplete="off" id="tag-@Activity.STATUS_REQUEST_PUBLISH"  checked> 待审核
+                </label>
+                <label class="btn filter-btn filter-quarter active">
+                    <input type="checkbox" autocomplete="off" id="tag-@Activity.STATUS_PUBLISH"  checked> 已发布
+                </label>
+                <label class="btn filter-btn filter-quarter">
+                    <input type="checkbox" autocomplete="off" id="tag-@Activity.STATUS_EXPIRED"> 已过期
+                </label>
+
+            </div>
+
+
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+        @for(a <- activity) {
+            <div class="activity-underline row @a.status @a.deleted">
+
+                <div class="col-md-6">
+                    <div class="activity-manager-title">
+                        <a class="admin-controller star_@a.star" id="star-activity-@a.id" href="javascript:starChange('@a.id');" role="button">@if(a.star == true) {<span class="glyphicon glyphicon-star"></span>} else {<span class="glyphicon glyphicon-star-empty"></span>}</a>
+                        <label>
+                            @a.name
+                            @if(a.status == Activity.STATUS_REQUEST_PUBLISH) {
+                                (待审核)}
+                            @if(a.status == Activity.STATUS_UNPUBLISH) {
+                                (草稿)}
+                        </label>
+                    </div>
+
+                </div>
+
+                <div class="col-md-6">
+
+                    @if(a.status == Activity.STATUS_UNPUBLISH) {
+
+                        <div class="col-xs-4">
+                            <a class="btn btn-block filter-btn admin-controller" href="/create/@a.id" role="button">编辑活动</a>
+                        </div>
+
+                        <div class="col-xs-4">
+                            <a class="btn btn-block filter-btn admin-controller" href="/activity/@a.id?preview=true" target="_blank"  role="button">预览</a>
+                        </div>
+
+                        <div class="col-xs-4">
+                            @if(!User.CurrentUser().IsAdministrator() && a.status == Activity.STATUS_UNPUBLISH){
+                                <button class="btn btn-block filter-btn admin-controller" onclick="requestPublish('@a.id')" role="button">发布</button>
+                            }
+                        </div>
+                    }
+
+                    @if(a.status == Activity.STATUS_REQUEST_PUBLISH) {
+
+                        <div class="col-xs-4">
+                            <a class="btn btn-block filter-btn admin-controller" href="/create/@a.id" role="button">编辑活动</a>
+                        </div>
+
+                        <div class="col-xs-4">
+                            <button class="btn btn-block filter-btn admin-controller" onclick="GetEmailSettingsPage(this, '/activity/@a.id/email-settings')" role="button"  data-toggle="modal" data-loading-text="Loading..." >邮件设置</button>
+                        </div>
+
+                        <div class="col-xs-4">
+                            <a class="btn btn-block filter-btn admin-controller" href="/activity/@a.id?preview=true" target="_blank"  role="button">预览</a>
+                        </div>
+                    }
+
+                    @if(a.status == Activity.STATUS_PUBLISH) {
+
+                        <div class="col-xs-4">
+                            <a class="btn btn-block filter-btn admin-controller" href="/create/@a.id" role="button">编辑活动</a>
+                        </div>
+
+                        <div class="col-xs-4">
+                            <button class="btn btn-block filter-btn admin-controller" onclick="GetEmailSettingsPage(this, '/activity/@a.id/email-settings')" role="button"  data-toggle="modal" data-loading-text="Loading..." >邮件设置</button>
+                        </div>
+
+                        <div class="col-xs-4">
+                            <a class="btn btn-block filter-btn admin-controller" href="/activity/@a.id?preview=false" target="_blank"  role="button">查看</a>
+                        </div>
+                    }
+
+
+                    @if(a.status == Activity.STATUS_EXPIRED) {
+
+                        <div class="col-xs-8">
+                            @@ @a.date_time;
+                        </div>
+
+                        <div class="col-xs-4">
+                            <a class="btn btn-block filter-btn admin-controller" href="/activity/@a.id?preview=true" target="_blank"  role="button">回顾</a>
+                        </div>
+                    }
+
+
+                </div>
+            </div>
+        }
+        </div>
+    </div>
+</div>
+
+    <!--
+    <div class="col-sm-12 table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>活动名称</th>
+                    <th>组织者</th>
+                    <th>创建时间</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+            @for(a <- activity) {
+                <tr class="@a.status deleted_@a.deleted">
+                    <td>@a.name
+                        @if(a.status == Activity.STATUS_REQUEST_PUBLISH){<br/>(待审核)}
+                        @if(a.status == Activity.STATUS_UNPUBLISH){<br/>(草稿)}
+                    </td>
+                    <td>@a.organizer</td>
+                    <td>@a.GetLocalDateTime(a.create_date_time)</td>
+                    <td>
+                        <a class="btn btn-lg admin-controller star_@a.star" id="star-activity-@a.id" href="javascript:starChange('@a.id');" role="button">@if(a.star == true) {已置顶} else {未置顶}</a>
+                        <a class="btn btn-lg btn-info admin-controller" href="/create/@a.id" role="button">编辑</a>
+                        <button class="btn btn-lg btn-info admin-controller" onclick="GetEmailSettingsPage(this, '/activity/@a.id/email-settings')" role="button"  data-toggle="modal" data-loading-text="Loading..." >邮件设置</button>
+                        @if(a.status == Activity.STATUS_PUBLISH) {
+                            <a class="btn btn-lg btn-primary admin-controller" href="/activity/@a.id?preview=false" target="_blank"  role="button"> 查看</a>
+                        }else{
+                            <a class="btn btn-lg btn-primary admin-controller" href="/activity/@a.id?preview=true" target="_blank" role="button"> 预览</a>
+                        }
+
+                        @if(!User.CurrentUser().IsAdministrator() && a.status == Activity.STATUS_UNPUBLISH){
+                            <button class="btn btn-lg btn-primary admin-controller" onclick="requestPublish('@a.id')" role="button">发布</button>
+                        }
+                    </td>
+                </tr>
+            }
+
+            </tbody>
+        </table>
+    </div>
+    -->
+
+    <!-- Modal -->
+    <div class="modal fade" id="emailSettings" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content" id="email-setting-page">
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script language="JavaScript">
+
+    function requestPublish(acvitityId)
+    {
+        $.rest("GET", "/api/v1/publish/" + acvitityId, {}, function(result){ location.reload(true); }, function(error){ alert(error.responseText);});
+    }
+
+    function GetEmailSettingsPage(button, emailUrl){
+        var $btn = $(button).button('loading');
+        $( "#email-setting-page" ).load(emailUrl, function() {
+            $('#emailSettings').modal('show');
+            $btn.button('reset')
+        });
+    }
+
+
+    $(".@Activity.STATUS_UNPUBLISH").toggle( $("#tag-@Activity.STATUS_UNPUBLISH").is(':checked'));
+    $(".@Activity.STATUS_REQUEST_PUBLISH").toggle( $("#tag-@Activity.STATUS_REQUEST_PUBLISH").is(':checked'));
+    $(".@Activity.STATUS_PUBLISH").toggle( $("#tag-@Activity.STATUS_PUBLISH").is(':checked'));
+    $(".@Activity.STATUS_EXPIRED").toggle( $("#tag-@Activity.STATUS_EXPIRED").is(':checked'));
+    $("#tag-@Activity.STATUS_UNPUBLISH").change(function(){$(".@Activity.STATUS_UNPUBLISH").toggle(this.checked);});
+    $("#tag-@Activity.STATUS_REQUEST_PUBLISH").change(function(){$(".@Activity.STATUS_REQUEST_PUBLISH").toggle(this.checked);});
+    $("#tag-@Activity.STATUS_PUBLISH").change(function(){$(".@Activity.STATUS_PUBLISH").toggle(this.checked);});
+    $("#tag-@Activity.STATUS_EXPIRED").change(function(){$(".@Activity.STATUS_EXPIRED").toggle(this.checked);});
+
+
+</script>
+
+}

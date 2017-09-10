@@ -1,0 +1,1001 @@
+@import Enums.ActivityFolderEnum
+@(message: String)(a: Activity)(terms: Article)(ticketType: List[TicketType])(selectableVenueCity: List[City])(selectableFolders: Array[Enums.ActivityFolderEnum])(u:User)
+
+@main(message) {
+    <!-- Main component for a primary marketing message or call to action -->
+
+
+    <form class="form-horizontal" enctype="multipart/form-data" id="create-form"
+    data-bv-message="This value is not valid"
+    data-bv-feedbackicons-valid="glyphicon glyphicon-ok"
+    data-bv-feedbackicons-invalid="glyphicon glyphicon-remove"
+    data-bv-feedbackicons-validating="glyphicon glyphicon-refresh">
+
+
+        <div class="row text-center">
+            <h3>@if(a == null){创建}else{更新}活动</h3>
+        </div>
+
+        @if(a != null && a.status != Activity.STATUS_UNPUBLISH) {
+            <div class="alert alert-warning" style="text-align:center" role="alert"><strong>注意!</strong> 修改内容将重新变为草稿状态</div>
+        }
+
+
+
+        @if(terms != null) {
+            <div id="termModal" class="modal fade" role="dialog">
+                <div class="modal-dialog">
+                        <!-- Modal content-->
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h4 class="modal-title">@terms.title</h4>
+                        </div>
+                        <div class="modal-body"> @Html(terms.content)</div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">确认</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <script type="text/javascript">
+                    $("#termModal").modal('show');
+            </script>
+        }
+
+
+
+        <input class="form-control" type="hidden" name="id" placeholder="自动分配" value="@if(a != null) {@a.id}" readonly>
+
+
+
+
+
+        <div class="form-group form-group-sm">
+            <div class="col-sm-12">
+                <div class="eventHeader"><span>1</span>活动简介</div>
+            </div>
+        </div>
+
+        <div class="form-group form-group-sm">
+            <label class="col-md-2 col-sm-3 control-label hidden-xs">活动名称</label>
+
+            <div class="col-sm-8">
+                <input class="form-control" type="text" name="name" id="name" placeholder="活动名称(不得超过18字符)" value="@if(a != null) {@a.name}" data-bv-notempty data-bv-notempty-message="活动名称为必填项" maxlength="18">
+            </div>
+        </div>
+
+        <div class="form-group form-group-sm">
+            <label class="col-md-2 col-sm-3 control-label hidden-xs">活动类别</label>
+            <div class="col-sm-8">
+                <select class="form-control" name="folder" id="folder" >
+                @for(f <- selectableFolders) {
+                    <option value="@f.getMsg()" @if(a != null && a.folder== f.getMsg()){selected}>@f.getMsg()</option>
+                }
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group form-group-sm">
+            <label class="col-md-2 col-sm-3 control-label hidden-xs">活动地点</label>
+            <div class="col-sm-8">
+                <input class="form-control" type="text" name="venue_brief" id="venue_ brief" placeholder="活动地点" value="@if(a != null) {@a.GetVenueBrief()}" readonly>
+            </div>
+        </div>
+
+
+        <div class="form-group form-group-sm">
+            <label class="col-md-2 col-sm-3 control-label hidden-xs">活动地点名称</label>
+            <div class="col-sm-8">
+                <input class="form-control" type="text" name="venue_name" id="venue_name" placeholder="活动地点名称" value="@if(a != null) {@a.GetVenueName()}" data-bv-notempty data-bv-notempty-message="活动地点名称为必填项">
+            </div>
+        </div>
+
+        <div class="form-group form-group-sm">
+            <label class="col-md-2 col-sm-3 control-label hidden-xs">地址</label>
+            <div class="col-sm-8">
+                <input class="form-control" type="text" name="venue_street_address" id="venue_street_address" placeholder="地址" value="@if(a != null) {@a.GetVenueStreetAddress()}">
+            </div>
+        </div>
+
+        <div class="form-group form-group-sm">
+            <label class="col-md-2 col-sm-3 control-label hidden-xs">邮编</label>
+            <div class="col-sm-8">
+                <input class="form-control" type="text" name="venue_postal_code" id="venue_postal_code" placeholder="邮编" value="@if(a != null) {@a.GetVenuePostalCode()}">
+            </div>
+        </div>
+
+        <div class="form-group form-group-sm">
+            <label class="col-md-2 col-sm-3 control-label hidden-xs">城市</label>
+            <div class="col-sm-8">
+                <select class="form-control" name="venue_city" id="venue_city"
+                data-bv-callback="true"
+                data-bv-callback-message="请选择城市"
+                data-bv-callback-callback="validateCity" >
+                    <option selected>城市</option>
+                @for(c <- selectableVenueCity) {
+                    <option value="@c.name" @if(a != null && a.GetVenueCity().toUpperCase()== c.name.toUpperCase()){selected}>@c.name</option>
+                }
+                </select>
+            </div>
+        </div>
+
+
+        <div class="form-group form-group-sm">
+            <label class="col-md-2 col-sm-3 control-label hidden-xs">国家</label>
+            <div class="col-sm-8">
+                <select class="form-control" name="venue_country" id="venue_country"
+                data-bv-callback="true"
+                data-bv-callback-message="请选择国家"
+                data-bv-callback-callback="validateCountry">
+                    <option selected>国家</option>
+                    <option value="Canada" @if(a!=null && a.GetVenueCountry().toUpperCase()== "CANADA"){selected}>Canada</option>
+                    <option value="China" @if(a!=null && a.GetVenueCountry().toUpperCase()== "CHINA"){selected}>China</option>
+                </select>
+            </div>
+        </div>
+        <script>
+            function validateCity(){
+                return $("#venue_city").val()!="城市";
+            }
+            function validateCountry(){
+                return $("#venue_country").val()!="国家";
+            }
+        </script>
+
+        <!--new data time-->
+        <div class="form-group form-group-sm no_feedback_icon">
+
+            <label class="col-sm-3 col-md-2 control-label hidden-xs">开始日期时间</label>
+            <div class="col-sm-8 col-md-3">
+                <div class='input-group date' id='datetimepicker_start'>
+                    <input type='text'
+                        class="form-control"
+                        name="start_datetime"
+                        id="start_datetime"
+                        placeholder="开始日期时间"
+                        value="@if(a != null) {@a.GetLocalDateTimeCanada(a.start_date_time)}"
+                        data-bv-notempty
+                        data-bv-notempty-message="开始日期时间为必填项"/>
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+                <script type="text/javascript">
+                    $(function () {
+                        $('#datetimepicker_start').datetimepicker({startDate:new Date()}) .on('changeDate', function(e) {
+                        var TimeZoned = new Date(e.date.getTime() + (e.date.getTimezoneOffset() * 60000));
+                        $('#datetimepicker_end').datetimepicker({startDate: TimeZoned});
+                        $(this).datetimepicker('hide');
+                        // Revalidate the date field
+                        $('#create-form').bootstrapValidator('revalidateField', 'start_datetime');
+                        });
+                    });
+                </script>
+            </div>
+
+            <div class="col-xs-12 visible-xs visible-sm">&nbsp;</div>
+            <label class="col-sm-3 col-md-2 control-label hidden-xs">结束日期时间</label>
+            <div class="col-sm-8 col-md-3">
+                <div class='input-group date' id='datetimepicker_end'>
+                    <input type='text'
+                        class="form-control"
+                        name="end_datetime"
+                        id="end_datetime"
+                        placeholder="结束日期时间"
+                        value="@if(a != null) {@a.GetLocalDateTimeCanada(a.end_date_time)}"
+                        data-bv-notempty
+                        data-bv-notempty-message="结束日期时间为必填项"/>
+                    <span class="input-group-addon">
+                        <span class="glyphicon glyphicon-calendar"></span>
+                    </span>
+                </div>
+                <script type="text/javascript">
+                    $(function () {
+                        $('#datetimepicker_end').on('changeDate', function(e) {
+                        $(this).datetimepicker('hide');
+                        // Revalidate the date field
+                        $('#create-form').bootstrapValidator('revalidateField', 'end_datetime');
+                        });
+                    });
+                </script>
+            </div>
+
+
+
+
+
+        </div>
+
+
+
+        <div class="form-group form-group-sm no_feedback_icon">
+            <label class="col-md-2 col-sm-3 control-label hidden-xs">活动照片</label>
+            <div class="col-sm-8 file_input_block ">
+                <input type="file" id="upload-activity-image"
+                accept="image/*" data-bv-file-extension="jpeg,png">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-md-2 col-sm-3 control-label hidden-xs">活动简介</label>
+            <div class="col-sm-8">
+                <textarea
+                    class="form-control"
+                    rows="4"
+                    name="brief_description"
+                    id="brief_description"
+                    placeholder="让大家了解你的活动！100字以内简介"
+                    data-bv-notempty data-bv-notempty-message="活动简介为必填项"
+                    maxlength="100" >@if(a != null) {@a.brief_description}</textarea>
+            </div>
+        </div>
+
+
+        <div class="form-group form-group-sm">
+            <div class="col-sm-12">
+                <div class="eventHeader"><span>2</span>活动详情</div>
+            </div>
+        </div>
+
+
+        <div class="form-group">
+            <label class="col-md-2 col-sm-3 control-label hidden-xs">活动详情</label>
+            <div class="col-sm-8">
+                <div id="summernote"></div>
+                <textarea class="form-control"
+                    id="summernote_text"
+                    rows="8"
+                    name="description"
+                    id="description"
+                    placeholder="活动详情" >@if(a != null) {@a.description}</textarea>
+            </div>
+        </div>
+
+        <div class="form-group form-group-sm no_feedback_icon">
+            <label class="col-md-2 col-sm-3 control-label hidden-xs">详情图片</label>
+
+            <div class="col-sm-8 file_input_block">
+                <input type="file" id="upload-description-image" accept="image/*">
+            </div>
+        </div>
+
+
+            <!--new data time-->
+
+
+        <!--div class="form-group form-group-sm">
+            <label class="col-md-2 col-sm-3 control-label">显示时间日期</label>
+             <div class="col-sm-8"-->
+                <input type="hidden" name="datetime" id="datetime" placeholder="Date Time" value="@if(a != null) {@a.date_time}" readonly>
+            <!--/div>
+        </div-->
+
+
+
+        <div class="form-group form-group-sm">
+            <div class="col-sm-12">
+                <div class="eventHeader"><span>3</span>主办方信息</div>
+            </div>
+        </div>
+
+        <div class="form-group form-group-sm">
+            <label class="col-md-2 col-sm-3 control-label hidden-xs">主办方名称</label>
+            <div class="col-sm-8">
+                <input id="organizer-name"
+                    class="form-control"
+                    type="text"
+                    name="organizer-name"
+                    placeholder="主办方名称"
+                    value="@u.name"
+                    data-bv-notempty
+                >
+            </div>
+        </div>
+        <div class="form-group form-group-sm">
+            <label class="col-md-2 col-sm-3 control-label hidden-xs">主办方电话</label>
+            <div class="col-sm-8">
+                <input id="organizer-phone"
+                    class="form-control"
+                    type="text"
+                    name="organizer-phone"
+                    placeholder="主办方电话"
+                    value="@u.tel"
+                    data-bv-notempty
+                >
+            </div>
+        </div>
+        <div class="form-group form-group-sm">
+             <label class="col-md-2 col-sm-3 control-label hidden-xs">主办方邮件</label>
+             <div class="col-sm-8">
+                <input id="organizer"
+                    class="form-control"
+                    type="text"
+                    name="organizer"
+                    placeholder="主办方邮件"
+                    value="@if(a != null) {@a.organizer}"
+                    readonly>
+            </div>
+        </div>
+
+        <div class="form-group form-group-sm">
+            <div class="col-sm-12">
+                <div class="eventHeader"><span>4</span>票务信息</div>
+            </div>
+        </div>
+
+
+
+
+        <div class="ticketTemplate hidden">
+            <div class="ticket">
+                <div class="row">
+                    <label class="col-md-2 col-sm-3 control-label hidden-xs ticket_label">票务</label>
+
+                    <div class="col-sm-8 col-xs-12 form-group">
+                        <input type="text" class="form-control ticket_type" name="ticket_type" data-bv-notempty>
+                    </div>
+
+
+                </div>
+
+
+                <div class="row">
+                    <label class="col-md-2 col-sm-3 hidden-xs">&nbsp;</label>
+                    <div class="col-sm-4 col-xs-12 form-group">
+                        <input type="text" class="form-control ticket_price" name="ticket_price"
+                        data-bv-notempty pattern="^([0-9]+)(.[0-9]{0,2})?$" data-bv-regexp-message="请输入正确价格">
+                    </div>
+
+                    <div class="col-sm-4 col-xs-12 form-group no_feedback_icon">
+                        <select class="include_tax form-control">
+                            <option value="false">未含税</option>
+                            <option value="true">已含税</option>
+                        </select>
+                    </div>
+                </div>
+
+
+                <div class="row">
+                    <label class="col-md-2 col-sm-3 hidden-xs">&nbsp;</label>
+                    <div class="col-sm-4 col-xs-12 form-group">
+                        <input type="text" class="form-control ticket_count" name="ticket_count"
+                        data-bv-callback="true"
+                        data-bv-callback-callback="validateTicketCount">
+                    </div>
+
+                    <div class="col-sm-4 col-xs-12 form-group">
+                        <input type="text" class="form-control ticket_sold" readonly>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <label class="col-md-2 col-sm-3 control-label hidden-xs">&nbsp;</label>
+                    <div class="col-xs-6 col-sm-3 col-md-2 form-group">
+                        <button type="button" class="btn delete_button red_btn red_btn_small"><span class="glyphicon glyphicon-trash"></span> 删除</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            function validateTicketCount(value, validator, $field)
+            {
+
+                var re = new RegExp(/^[0-9]+$/);
+                if(!re.test(value)){
+                    return {valid:false, message:"请输入整数数量"};
+                }
+
+                var count = parseInt(value);
+
+                var sold = $field[0].$sold.val()
+                sold = parseInt(sold);
+
+                var require = sold? sold : 1;
+                
+                if(count < require){
+                    return {valid:false, message:"总票数至少为{0}张".format(require)};
+                }
+
+                return true;
+            }
+        </script>
+
+
+        <div class="row no_ticket_error">
+            <div class="has-error col-sm-offset-3 col-md-offset-2 col-sm-8">
+                <small class="help-block">活动需要至少一种票务</small>
+            </div>
+        </div>
+        <div id="ticket_container">
+        </div>
+
+        <script>
+             $(".no_ticket_error").hide()
+        </script>
+
+        <div class="row">
+            <div class="col-sm-offset-3 col-md-offset-2 col-sm-3 col-md-2 col-xs-6">
+                <button type="button" class="btn orange_btn" onclick="addTicket('new',false)"><span class="glyphicon glyphicon-plus-sign"></span> 新增票务</button>
+            </div>
+            <div class="col-sm-3 col-md-2 col-xs-6 col-sm-offset-2 col-md-offset-4">
+                <button type="button" class="btn orange_btn" onclick=" addTicket('new',true)" ><span class="glyphicon glyphicon-plus-sign"></span> 新增免费票务</button>
+            </div>
+        </div>
+        <script type="text/javascript">
+
+            var tickets = [];
+
+            function addTicket(type, isFree, id, ticketType, price, taxIncluded, count, sold){
+
+                var nd = $(".ticketTemplate").children().clone();
+                nd.type = type;
+                nd.id = id;
+
+
+                var $ticketType = nd.find(".ticket_type");
+                var $ticketPrice = nd.find(".ticket_price");
+                var $includeTax = nd.find(".include_tax");
+                var $ticketCount = nd.find(".ticket_count");
+                var $ticketSold = nd.find(".ticket_sold");
+
+                $ticketType.val(ticketType).money_field({symbol:"类别名称"});
+                $ticketPrice.val(price).money_field({symbol:"价格", padding: "0 26px"});
+                $includeTax.val(taxIncluded).money_field({symbol:"是否含税"});
+                $ticketCount.val(count).money_field({symbol:"总票数", padding: "0 19px"});
+                $ticketSold.val(sold).money_field({symbol:"已售", padding: "0 26px"});
+
+                $ticketCount[0].$sold = $ticketSold;
+
+
+                $('#create-form').bootstrapValidator('addField', $ticketType);
+                $('#create-form').bootstrapValidator('addField', $ticketPrice);
+                $('#create-form').bootstrapValidator('addField', $ticketCount);
+
+                var deleteBtn = nd.find(".delete_button");
+                deleteBtn.click(function(){
+                    if(nd.type=="new"){
+                        nd.remove();
+
+                        var i = tickets.indexOf(nd);
+                        tickets.splice(i,1);
+                    }else{
+                        nd.type="delete";
+                        nd.hide();
+                    }
+                });
+
+                if(type == "new"){
+                    nd.find(".ticket_label").html("新增票务");
+                }
+
+                if(isFree){
+                    $ticketPrice.attr("disabled", true).val(0);
+                    $includeTax.attr("disabled", true)
+                }
+
+                $("#ticket_container").append(nd);
+                tickets.push(nd);
+
+            }
+
+
+            @if(a != null) {
+                @for(tt <- ticketType) {
+                    addTicket("update", @if(tt.price == 0) {true} else {false}, "@tt.id", "@tt.type_name","@tt.price", "@tt.taxIncluded","@tt.quantity","@tt.booked");
+                }
+            }
+
+            if(tickets.length <=0){
+                addTicket("new",false);
+            }
+
+
+            $(".fakeInput").each(function(){
+                var e = $(this);
+                var input = e.find("input");
+                input.focusin(function(){
+                    e.addClass("focus");
+                });
+                input.focusout(function(){
+                    e.removeClass("focus");
+                });
+            })
+        </script>
+
+
+
+        <div class="form-group form-group-sm">
+            <div class="col-sm-12">
+                <div class="eventHeader"><span>5</span>以下客户信息是否设为必填项</div>
+            </div>
+        </div>
+
+
+
+        <div class="form-group form-group-sm">
+             <label class="col-xs-12 col-sm-3 col-md-2 control-label">姓名</label>
+             <div class="col-sm-8 col-xs-12">
+                <div>
+                    <select class="form-control" name="bname" id="bname">
+                        <option value="false" @if(a == null || !a.bname) {selected}>否</option>
+                        <option value="true"  @if(a != null && a.bname) {selected}>是</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group form-group-sm">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">电话</label>
+             <div class="col-sm-8 col-xs-12">
+                <div>
+                    <select class="form-control" name="btel" id="btel">
+                        <option value="false" @if(a == null || !a.btel) {selected}>否</option>
+                        <option value="true"  @if(a != null && a.btel) {selected}>是</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group form-group-sm">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">性别</label>
+             <div class="col-sm-8 col-xs-12">
+                <div>
+                    <select class="form-control" name="bgender" id="bgender">
+                        <option value="false" @if(a == null || !a.bgender) {selected}>否</option>
+                        <option value="true"  @if(a != null && a.bgender) {selected}>是</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group form-group-sm">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">年龄</label>
+             <div class="col-sm-8 col-xs-12">
+                <div>
+                    <select class="form-control" name="bage" id="bage">
+                        <option value="false" @if(a == null || !a.bage) {selected}>否</option>
+                        <option value="true"  @if(a != null && a.bage) {selected}>是</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group form-group-sm">
+            <label class="col-xs-12 col-sm-3 col-md-2 control-label">地址</label>
+             <div class="col-sm-8 col-xs-12">
+                <div>
+                    <select class="form-control" name="baddress" id="baddress">
+                        <option value="false" @if(a == null || !a.baddress) {selected}>否</option>
+                        <option value="true"  @if(a != null && a.baddress) {selected}>是</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+    @if(u.IsAdministrator()) {
+
+
+        <div class="form-group form-group-sm">
+            <div class="col-sm-12">
+                <div class="eventHeader"><span>6</span>管理员选项</div>
+            </div>
+        </div>
+
+        <div class="form-group form-group-sm">
+            <label class="col-sm-3 col-md-2 control-label" for="status">活动状态</label>
+            <div class="col-lg-9 col-sm-10">
+                <div class="btn-group" data-toggle="buttons">
+                    <label class="btn btn-info @if(a == null || a.status==Activity.STATUS_UNPUBLISH){ active}">
+                        <input type="radio" name="status" value="@Activity.STATUS_UNPUBLISH" @if(a == null || a.status==Activity.STATUS_UNPUBLISH){checked}  data-fv-notempty/> 草稿
+                    </label>
+                    <label class="btn btn-info @if(a != null) {  @if(a.status==Activity.STATUS_REQUEST_PUBLISH){ active}}">
+                        <input type="radio" name="status" value="@Activity.STATUS_REQUEST_PUBLISH" @if(a != null) {  @if(a.status==Activity.STATUS_REQUEST_PUBLISH){checked}}  data-fv-notempty/> 待审核
+                    </label>
+                    <label class="btn btn-info @if(a != null) {  @if(a.status==Activity.STATUS_PUBLISH){ active}}">
+                        <input type="radio" name="status" value="@Activity.STATUS_PUBLISH" @if(a != null) {  @if(a.status==Activity.STATUS_PUBLISH){checked}}  data-fv-notempty/> 已发布
+                    </label>
+                    <label class="btn btn-info @if(a != null) {  @if(a.status==Activity.STATUS_EXPIRED){ active}}">
+                        <input type="radio" name="status" value="@Activity.STATUS_EXPIRED" @if(a != null) {  @if(a.status==Activity.STATUS_EXPIRED){checked}}  data-fv-notempty/> 已过期
+                    </label>
+                </div>
+            </div>
+        </div>
+
+    }
+
+        <div class="form-group form-group-sm">
+            <div class="col-sm-3 col-md-2 @if(a == null){col-xs-12}else{col-xs-6} col-sm-offset-3 col-md-offset-2">
+                <button type="button" class="btn orange_btn submitBtn" onclick="preValidate();$('#create-form').submit()">
+                    <span class="glyphicon glyphicon-ok-sign"></span> @if(a == null){创建}else{更新}活动
+                </button>
+            </div>
+            @if(a != null) {
+
+                <div class="col-sm-3 col-md-2 col-xs-6 col-sm-offset-3 col-md-offset-4">
+                    <button type="button" class="btn red_btn" onclick="loadingBtn($(this));location.href = '/api/v1/deleteActivity?id=@a.id'"><span class="glyphicon glyphicon-trash"></span> 删除活动</button>
+                </div>
+
+            }
+        </div>
+
+
+
+
+
+        <!--div class="form-group form-group-sm">
+            <div class="col-sm-offset-2 col-sm-10">
+                <input class="btn btn-success" onclick="location.href = '/activity_manager'" value="返回活动管理页面"></input>
+            </div>
+        </div-->
+
+        <script>
+            function loadingBtn(e){
+                var w = e.width();
+                e.html('<i class="fa fa-spinner fa-spin"></i>');
+                e.width(w);
+            }
+        </script>
+
+    </form>
+
+
+    <script>
+
+    if($("#organizer").val()=="")
+    {
+    	var sId = window.loginUser;
+    	$("#organizer").val(sId);
+    }
+
+    $(document).ready(function(){
+    	$('.activity-image[src=""]').hide();
+    	$('.activity-image:not([src=""])').show();
+    	$('.description-image[src=""]').hide();
+    	$('.description-image:not([src=""])').show();
+
+    	$("#summernote_text").hide();
+
+
+    	var sId = window.loginUser;
+		var data = {"email": sId};
+		$.rest("GET", "/api/v1/checkRole", data,
+			function(data){
+				if(data.response === "admin")
+				{
+					$('#summernote').summernote({
+					  height: 500,
+					  toolbar: [
+						['style', ['style']],
+						['font', ['bold', 'italic', 'underline', 'clear']],
+						['fontname', ['fontname']],
+						['color', ['color']],
+						['para', ['ul', 'ol', 'paragraph']],
+						['height', ['height']],
+						['table', ['table']],
+						['insert', ['link', 'picture', 'hr']],
+						['view', ['fullscreen', 'codeview']],
+						['help', ['help']]
+					  ],
+					});
+					$('#summernote').on('summernote.change', function(customEvent, contents, $editable) {
+		  				$("#summernote_text").val($("#summernote").code());
+					});
+					$("#summernote").code($("#summernote_text").val());
+				}else
+				{
+					$('#summernote').summernote({
+						  height: 500,
+						  toolbar: [
+							['style', ['style']],
+							['font', ['bold', 'italic', 'underline', 'clear']],
+							['fontname', ['fontname']],
+							['color', ['color']],
+							['para', ['ul', 'ol', 'paragraph']],
+							['height', ['height']],
+							['table', ['table']],
+							['insert', ['link', 'hr']],
+							['view', ['fullscreen' ]],
+							['help', ['help']]
+						  ],
+						});
+					$('#summernote').on('summernote.change', function(customEvent, contents, $editable) {
+		  				$("#summernote_text").val($("#summernote").code());
+					});
+					$("#summernote").code($("#summernote_text").val());
+				}
+			},
+			function(data){
+				//alert("读取角色出错！");
+			}
+		);
+
+
+
+        setupImgUpload($("#upload-activity-image") @if(a!=null && a.image!=null){ ,"@a.image"} );
+        setupImgUpload($("#upload-description-image") @if(a!=null && a.description_image!=null){ ,"@a.description_image"})
+
+     });
+
+function setupImgUpload(inputNode, imgPreviewURL){
+    var options = {
+        showUpload: false,
+        showRemove: false,
+    };
+
+
+    if(imgPreviewURL){
+        options.initialPreview = ["<img src='{0}' class='file-preview-image'>".format(imgPreviewURL)];
+    }
+    inputNode.fileinput(options);
+
+    if(imgPreviewURL){
+        inputNode.data("hasImg",true);
+    };
+
+    inputNode.on("fileimageloaded",function(){
+        inputNode.data("hasImg",true);
+    });
+
+    inputNode.on("fileclear", function(){
+        inputNode.data("hasImg",false);
+    });
+}
+
+var MAX_IMG_SIZE = 1200;
+var MIN_IMG_SIZE = 350;
+
+function compressImg(img){
+
+    if(!img || !img.src){
+        return null;
+    }
+
+    var width = img.width;
+    var height = img.height;
+
+    if (width < height) {
+        height *= MIN_IMG_SIZE / width;
+        width = MIN_IMG_SIZE;
+    } else {
+        width *= MIN_IMG_SIZE / height;
+        height = MIN_IMG_SIZE;
+    }
+
+    if (width > height) {
+        if (width > MAX_IMG_SIZE) {
+            height *= MAX_IMG_SIZE / height;
+            width = MAX_IMG_SIZE;
+        }
+    } else {
+        if (height > MAX_IMG_SIZE) {
+            width *= MAX_IMG_SIZE / height;
+            height = MAX_IMG_SIZE;
+        }
+    }
+
+
+    var canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+
+    return canvas.toDataURL();
+
+}
+
+
+function updateDisplayTime(){
+
+	var result_string = "";
+	var start_datetime = $("#start_datetime").val();
+	var end_datetime = $("#end_datetime").val();
+
+    function parseDate(input) {
+      var parts = input.split(/[- :]/);
+      return new Date(parts[0], parts[1]-1, parts[2],parts[3],parts[4]);
+    }
+
+
+    var start_datetime_date = parseDate(start_datetime);
+	var end_datetime_date = parseDate(end_datetime);
+	var start_month = start_datetime_date.getMonth()+1;
+    var start_day = start_datetime_date.getDate();
+    var start_hour = start_datetime_date.getHours();
+    var start_minute = start_datetime_date.getMinutes();
+    var end_month = end_datetime_date.getMonth()+1;
+    var end_day = end_datetime_date.getDate();
+    var end_hour = end_datetime_date.getHours();
+    var end_minute = end_datetime_date.getMinutes();
+
+
+
+    if((start_month === end_month)&&(start_day === end_day))
+    {
+    	if((start_minute!=0)&&(end_minute!=0))
+    	{
+    		result_string = start_month + "月" + start_day + "日" + start_hour + "点" + start_minute + "分 至 "+ end_hour + "点" + end_minute+ "分";
+    	}else if((start_minute==0)&&(end_minute==0))
+    	{
+	    	result_string = start_month + "月" + start_day + "日" + start_hour + "点 至 "+ end_hour + "点";
+    	}else if(start_minute==0)
+    	{
+	    	result_string = start_month + "月" + start_day + "日" + start_hour + "点 至 "+ end_hour + "点" + end_minute+ "分";
+    	}else if(end_minute==0)
+    	{
+	    	result_string = start_month + "月" + start_day + "日" + start_hour + "点" + start_minute + "分 至 "+ end_hour + "点";
+    	}
+
+    }else if(start_month === end_month)
+    {
+    	result_string = start_month + "月" + start_day + "日 至 " + end_day+ "日";
+    }else{
+      	result_string = start_month + "月" + start_day + "日 至 " + end_month + "月" + end_day+ "日";
+    }
+
+
+	$("#datetime").val(result_string);
+}
+
+$("#start_datetime").change(function() {
+	updateDisplayTime();
+});
+
+$("#end_datetime").change(function() {
+	updateDisplayTime();
+});
+
+
+function preValidate(){
+
+    var activityImgInput = $("#upload-activity-image");
+    if(!activityImgInput.data("hasImg")){
+        $('#create-form').bootstrapValidator('addField', $("#upload-activity-image"));
+    }
+
+    var count = 0;
+    tickets.forEach(function(e){
+        if(e.type == "new" || e.type == "update"){
+            count++;
+        }
+    });
+
+
+    if(count > 0){
+        $(".no_ticket_error").hide();
+    }else{
+    $(".no_ticket_error").show();
+        addTicket("new");
+    }
+
+}
+
+$("#create-form").submit(function(e){
+
+    e.preventDefault();
+});
+
+
+var validator = $('#create-form').bootstrapValidator();
+
+
+validator.on('success.form.bv', function(e, data) {
+
+
+        loadingBtn($(".submitBtn"));
+
+        e.preventDefault();
+
+        var uploadImages = $(".file_input_block .file-preview-image");
+
+        var activityImg = uploadImages[0];
+        var descriptionImg = uploadImages[1];
+
+        var compressedActivityImg = compressImg(activityImg);
+        var compressedDescriptionImg = compressImg(descriptionImg);
+
+
+        var FD = new FormData($('#create-form')[0]);
+        var base64Matcher = new RegExp("^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{4})$");
+
+        if(compressedActivityImg){
+            var data = compressedActivityImg.split(",")[1];
+            if(data && base64Matcher.test(data)){
+                var activity_binary = fixBinary(atob(data));
+                var activity_blob = new Blob([activity_binary], {type: "png"});
+                FD.append("activity_image_compressed", activity_blob);
+            }
+        }
+        if(compressedDescriptionImg){
+
+            var data = compressedDescriptionImg.split(",")[1];
+            if(data && base64Matcher.test(data)){
+                var description_binary = fixBinary(atob(data));
+                var description_blob = new Blob([description_binary], {type: "png"});
+                FD.append("description_image_compressed", description_blob);
+            }
+        }
+
+
+
+        // retrieve ticket values
+
+        var ticket_new = [];
+        var ticket_update = [];
+        var ticket_delete = [];
+
+
+        tickets.forEach(function(e){
+
+            if(e.type == "new"){
+                ticket_new.push(e);
+            }else if (e.type=="update"){
+                ticket_update.push(e);
+            }else if(e.type=="delete"){
+                ticket_delete.push(e);
+            }
+        });
+
+        FD.append("new_count", ticket_new.length);
+        FD.append("update_count", ticket_update.length);
+        FD.append("delete_count", ticket_delete.length);
+
+        function addTicketData(arr, prefix){
+            for(var i = 0; i < arr.length;i++){
+                var e = arr[i];
+                var id = e.id;
+                var type = $(e).find(".ticket_type").val();
+                var count = $(e).find(".ticket_count").val();
+                var price = $(e).find(".ticket_price").val();
+                var includeTax = $(e).find(".include_tax").val();
+
+                FD.append("{0}_{1}_id".format(prefix,i), id);
+                FD.append("{0}_{1}_type_name".format(prefix,i), type);
+                FD.append("{0}_{1}_price".format(prefix,i), price);
+                FD.append("{0}_{1}_quantity".format(prefix,i), count);
+                FD.append("{0}_{1}_include_tax".format(prefix,i), includeTax);
+            }
+        }
+
+        addTicketData(ticket_new,"new");
+        addTicketData(ticket_update,"update");
+        addTicketData(ticket_delete,"delete");
+
+
+
+        var XHR = new XMLHttpRequest();
+        XHR.onreadystatechange=function(){
+            if (XHR.readyState==4 && XHR.status==200){
+
+                var response = JSON.parse(XHR.responseText);
+                if(response.redirect != null && response.redirect != ""){
+                    location.assign(response.redirect);
+                } else{
+                     location.assign("/activity_manager");
+                }
+            }
+        }
+
+        XHR.open("POST", "/createActivityUI",true);
+        XHR.send(FD);
+
+    });
+
+
+validator.on("error.form.bv",function(e,data){
+    //console.log(e,data);
+});
+
+
+function fixBinary (bin) {
+    var length = bin.length;
+    var buf = new ArrayBuffer(length);
+    var arr = new Uint8Array(buf);
+    for (var i = 0; i < length; i++) {
+      arr[i] = bin.charCodeAt(i);
+    }
+    return buf;
+  }
+
+</script>
+}

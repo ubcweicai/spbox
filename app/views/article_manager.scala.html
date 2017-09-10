@@ -1,0 +1,42 @@
+@(message: String)(atype: String)(article: List[Article])
+
+
+@main(message) {
+
+<div class="col-sm-12">
+	<div class="control-label">
+		<label><h1>页面管理</h1></label>
+	</div>
+</div>
+
+<div class="col-sm-12">
+	<div class="control-label">
+		<a class="btn btn-lg btn-primary" href="/edit_article">添加页面</a>
+	</div>
+</div>
+
+<div class="col-sm-12 table-responsive">	
+	<table class="table">
+		<thead>
+			<tr>
+				<th>操作</th>
+				<th>标题</th>
+				<th>标识</th>
+			</tr>
+		</thead>
+		<tbody>
+			@for(a <- article) {
+			<tr>
+				<td><a class="btn btn-lg btn-info admin-controller" href="/edit_article?id=@a.id" role="button">编辑</a></td>
+				<td>@a.title</td>
+				<td>@a.name</td>
+			</tr>
+			}
+	
+		</tbody>
+	</table>
+</div>
+
+
+
+}

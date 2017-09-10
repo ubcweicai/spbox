@@ -1,0 +1,44 @@
+@(message: String)(atype: String)(city: List[City])
+
+
+@main(message) {
+
+<div class="col-sm-12">
+	<div class="control-label">
+		<label><h1>城市管理</h1></label>
+	</div>
+</div>
+
+<div class="col-sm-12">
+	<div class="control-label">
+		<a class="btn btn-lg btn-primary" href="/edit_city">添加城市</a>
+	</div>
+</div>
+
+<div class="col-sm-12 table-responsive">	
+	<table class="table">
+		<thead>
+			<tr>
+				<th>操作</th>
+				<th>城市名</th>
+				<th>国家</th>
+				<th>时区</th>
+			</tr>
+		</thead>
+		<tbody>
+			@for(c <- city) {
+			<tr>
+				<td><a class="btn btn-lg btn-info admin-controller" href="/edit_city?id=@c.id" role="button">编辑</a></td>
+				<td>@c.name</td>
+				<td>@c.country</td>
+				<td>@c.timeZone</td>
+			</tr>
+			}
+	
+		</tbody>
+	</table>
+</div>
+
+
+
+}

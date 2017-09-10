@@ -1,0 +1,223 @@
+@(message: String)(u: User)(editable: Boolean)(passwordEditable: Boolean)
+
+@main(message) {
+	<div class="jumbotron">
+		<div class="row">
+			<div class="col-sm-offset-2 col-sm-8">
+				<form autocomplete="off" class="form-horizontal" id="login-form" onsubmit="return false;"
+				data-bv-message="This value is not valid"
+				data-bv-feedbackicons-valid="glyphicon glyphicon-ok"
+				data-bv-feedbackicons-invalid="glyphicon glyphicon-remove"
+				data-bv-feedbackicons-validating="glyphicon glyphicon-refresh"
+				data-bv-live="enabled">
+
+					<div class="form-group form-group-sm">
+						<label class="ol-md-5 control-label" id="user-info"></label>
+					</div>
+
+					<div class="form-group form-group-sm">
+						<div class="col-sm-12">
+							<div class="eventHeader"><span>1</span>必填项</div>
+						</div>
+					</div>
+
+					<div class="form-group form-group-sm">
+						<label class="col-sm-2 control-label">邮箱:</label>
+						<div class="col-sm-10">
+							<input class="form-control" type="email" name="email" id="email"
+								placeholder="" value="@if(u!=null){@u.email}" @if(u!=null){readonly} data-bv-notempty="true" data-bv-notempty-message="邮箱为必填项">
+						</div>
+					</div>
+
+					@if(editable && passwordEditable){
+
+						<div class="form-group form-group-sm" id="password-div">
+							<div class="col-sm-2 control-label">
+								<label class="control-label">密码:</label>
+							</div>
+							<div class="col-sm-10">
+								<input class="form-control" type="password" name="password"
+									id="password" placeholder="" autocomplete="off" data-bv-notempty="true" data-bv-notempty-message="密码为必填项">
+							</div>
+						</div>
+
+						<div class="form-group form-group-sm" id="confirm-password-div">
+							<div class="col-sm-2 control-label">
+								<label class="control-label">确认密码:</label>
+							</div>
+							<div class="col-sm-10">
+								<input class="form-control" type="password" name="confirm-password"
+									id="confirm-password" placeholder="" @if(editable==false){readonly} data-bv-notempty="true" data-bv-notempty-message="请确认密码">
+							</div>
+						</div>
+					}
+
+					<div class="form-group form-group-sm">
+						<div class="col-sm-12">
+							<div class="eventHeader"><span>2</span>选填项</div>
+						</div>
+					</div>
+
+					<div class="form-group form-group-sm">
+						<label class="col-sm-2 control-label">名字:</label>
+						<div class="col-sm-10">
+							<input class="form-control" type="text" name="name" id="name"
+							placeholder="" value="@if(u!=null){@u.name}" @if(editable==false){readonly}>
+						</div>
+					</div>
+
+					<div class="form-group form-group-sm">
+						<div class="col-sm-2 control-label">
+							<label class="control-label">电话:</label>
+						</div>
+						<div class="col-sm-10">
+							<input class="form-control" type="text" name="tel" id="tel"
+								placeholder="" value="@if(u!=null){@u.tel}" @if(editable==false){readonly}>
+						</div>
+					</div>
+
+					<div class="form-group form-group-sm">
+						<div class="col-sm-2 control-label">
+							<label class="control-label">性别:</label>
+						</div>
+						<div class="col-sm-10">
+							<div>
+								<select class="form-control" name="gender" id="gender" @if(editable==false){disabled}>
+									<option disabled @if(u!=null){@if(u.gender==""){selected}}> -- 选择性别 -- </option>
+									<option value="male" @if(u!=null){@if(u.gender=="male"){selected}}>男</option>
+									<option value="female" @if(u!=null){@if(u.gender=="female"){selected}}>女</option>
+								</select>
+							</div>
+						</div>
+					</div>
+
+					<div class="form-group form-group-sm">
+						<div class="col-sm-2 control-label">
+							<label class="control-label">年龄:</label>
+						</div>
+						<div class="col-sm-10">
+							<input class="form-control" type="text" name="age" id="age"
+								placeholder="" value="@if(u!=null){@if(u.age!=0){@u.age}}" @if(editable==false){readonly}>
+						</div>
+					</div>
+
+					<div class="form-group form-group-sm">
+						<div class="col-sm-2 control-label">
+							<label class="control-label">地址:</label>
+						</div>
+						<div class="col-sm-10">
+							<input class="form-control" type="text" name="address" id="address"
+								placeholder="" value="@if(u!=null){@u.address}" @if(editable==false){readonly}>
+						</div>
+					</div>
+
+					@if(editable && !passwordEditable) {
+						<div class="form-group form-group-sm">
+							<div class="col-sm-2 control-label">
+								<label>角色：</label>
+							</div>
+							<div class="col-sm-10">
+								<div>
+									<select class="form-control" id="role">
+
+										<option value="admin" @if(u!=null){@if(u.role=="admin"){selected}}>管理员</option>
+										<option value="user" @if(u!=null){@if(u.role=="user"){selected}}>普通用户</option>
+										<option value="org" @if(u!=null){@if(u.role=="org"){selected}}>活动组织者</option>
+										<option value="blocked" @if(u!=null){@if(u.role=="blocked"){selected}}>被屏蔽</option>
+									</select>
+								</div>
+							</div>
+						</div>
+					}
+
+					@if(editable){
+
+						<div class="col-md-4 col-md-offset-4">
+							<button id="user-confirm-button" class="btn btn-success btn-block">提交</button>
+						</div>
+					}
+
+				</form>
+			</div>
+		</div>
+	</div>
+
+
+	@if(u!=null){
+		<button class="btn btn-danger" onclick="location.href = '/api/v1/deleteUser?email=@u.email'">删除用户</button>
+
+	}else{
+		<script language="JavaScript">
+			//hide the update button at the first beginning
+			//$("#user-confirm-button").hide();
+		</script>
+	}
+
+	<script language="JavaScript">
+		$("#email").bind("keyup change input keydown propertychange focusout", function(){
+			var theEmail = $("#email").val();
+			//avoid too much database search by exam if the user has already input . and AT
+			if(theEmail.indexOf(".")>=0)
+			{
+			    var data = {"email": theEmail};
+		    	$.rest("GET", "/api/v1/searchEmail", data, function(data, status){
+					$("#user-info").text("更新现有用户信息");
+					$("#password-div").hide();
+					$("#confirm-password-div").hide();
+				},
+				function(data, status){
+				$("#user-info").text("创建新用户");
+				$("#password-div").show();
+				$("#confirm-password-div").show();
+				});
+			}
+		});
+
+		$("#confirm-password").keyup(function(){
+			var thePassword = $("#password").val();
+			var theConfirmPassword = $("#confirm-password").val();
+
+			if(thePassword!=theConfirmPassword)
+			{
+				$("#user-info").text("两次输入的密码不一致！");
+				$("#user-confirm-button").hide();
+			}else
+			{
+				$("#user-info").text("密码通过验证！");
+				$("#user-confirm-button").show();
+			}	
+		});
+
+		$('#login-form').bootstrapValidator().off('success.form.bv').on('success.form.bv', function(e, data) {
+			e.preventDefault();
+			var theEmail = $("#email").val();
+			var role = $("#role").val();
+			var name = $("#name").val();
+			var tel = $("#tel").val();
+			var gender = $("#gender").val();
+			var age = $("#age").val();
+			var address = $("#address").val();
+
+			var password = $("#password").val();
+			var data;
+			if(password != null){
+			data = {"email": theEmail,  "password": Sha1.hash(password), "name": name, "tel": tel, "age": age, "gender":gender, "address":address, "role":role};
+			}else{
+			data = {"email": theEmail,  "name": name, "tel": tel, "age": age, "gender":gender, "address":address, "role":role};
+			}
+
+			$.rest("POST", "/api/v1/register", data, function(data){
+					$("#user-info").text(data.email + "注册成功");
+					window.location.assign(window.location.href);
+				},
+				function(data){
+					alert("注册失败！");
+				});
+
+		  });
+
+
+
+	</script>
+
+}

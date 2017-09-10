@@ -1,0 +1,342 @@
+@(message: String)(ticket: List[Ticket])
+
+@main(message){
+	
+	<div id="ticket">
+
+		@if(ticket.size>0){
+
+
+			<div id="filter1" class="row nav-filter">
+				<div class="form-group form-group-sm hidden-xs">
+					<div class="col-xs-4"></div>
+					<div class="col-xs-4 showHideBtn">
+						<input class="filter-btn" type="button" value="隐藏已用票" />
+					</div>
+					<div class="col-xs-4"></div>
+				</div>
+				<div class="form-group form-group-sm visible-xs">
+					<div class="col-xs-6 showHideBtn">
+						<input class="filter-btn" type="button" value="隐藏已用票" />
+					</div>
+                    <div class="col-xs-6 backBtn hidden-xs">
+                        <input class="filter-btn" type="button" value="返回" />
+                    </div>
+					<div class="col-xs-6">
+						<select class="form-control selectpicker selEvents">
+							<option value="all" selected>全部活动</option>
+						</select>
+					</div>
+
+				</div>
+			</div>
+
+
+
+
+			<div class="row" id="ticketContainer"></div>
+			
+			<script type="text/javascript">
+			
+			/*************** ticket data ************************/
+	
+			var dataMap = {};
+
+			function registerTicket(activity, ticket){		
+				if(!dataMap[activity.id]){
+					dataMap[activity.id] = activity;
+
+					var option = $("<option value='{0}'>{1}</option>".format(activity.id, activity.name));
+					$(".selEvents").append(option);
+				}else{
+					activity = dataMap[activity.id];
+				}
+				activity.tickets.push(ticket);
+			}
+
+
+			
+			/*************** ticket UI ************************/
+			
+			
+			function getTintedImgURL(img, r, g, b){
+				var tokens = img.split("/");
+				var pathQuery = "";
+				for(var i =0; i < tokens.length;i++){
+					var token = tokens[i];
+					if(i>0){
+						pathQuery += "&";
+					}
+					pathQuery += "path="+token;
+					
+				}
+				return "/imageOperation/tint?{0}&r={1}&g={2}&b={3}".format(pathQuery,r,g,b);
+			} 
+
+
+
+			function cssRGB(r,g,b){
+				function toHex(val){
+					var s = val.toString(16);
+					if(s.length < 2){
+						s = "0"+s;
+					}
+					return s;
+				}
+				return "#" + toHex(r) + toHex(g) + toHex(b);
+			}
+
+			function createTicketTag(activity,onCreateComplete){
+
+				getPrimaryColor(activity.image,function(c){
+					var r = c[0];
+					var g = c[1];
+					var b = c[2];
+
+					/*
+					var topSrc = getTintedImgURL('card/top.png',r,g,b);
+					var botSrc = getTintedImgURL('card/bot.png',r,g,b);
+					var splitSrc = getTintedImgURL('card/split.png',r,g,b);
+					var smallSrc = getTintedImgURL('card/small.png',r,g,b);
+					*/
+					
+					function createBlock(innerHTML, sidePadding, topPadding, botPadding){
+						if(sidePadding == undefined) sidePadding = 0;
+						if(topPadding == undefined) topPadding = 1;
+						if(botPadding == undefined) botPadding = 1;
+						
+						var paddingValue = "{0}px {2}px {1}px {2}px".format(topPadding, botPadding, sidePadding);
+					
+						var html = "";
+						html += "<div class='ticketBlock' style='background-color:{0};padding:{1}'>".format(cssRGB(r,g,b),paddingValue);
+						html += innerHTML;
+						html += "</div>";
+						return html;
+					}
+
+					function createActivityBlock(){
+						var html = "";
+						html += createBlock("<h2 class='activityName'>"+ activity.name +"</h2>");
+						html += createBlock("<p><img class='activityImg' src='{0}' alt=''/></p>".format(activity.image));
+						var line = "<p>时间{0}<br/>@@{1}</p>".format(activity.dateTime, activity.location);
+						html += createBlock(line,30);
+						return html;
+					}
+
+					function createTicketBlock(ticket){
+						var html = "";
+						html += "<div class='row'>";
+						if(ticket.checked){
+							html += "<img class='checkStamp' src='/imageOperation/checkedImage?date={0}'>".format(ticket.checkedTime);
+						}
+						html += "<h3 class='ticketType'>{0}</h3>".format(ticket.type);
+						html += "<div class='col-xs-6 ticketTypeWrapper'>&nbsp;</div>";
+						html += "<div class='col-xs-6'><img class='qrcode' src='{0}' alt=''></div>".format(ticket.qrcode);
+						html += "</div>";
+						return createBlock(html,30,10);
+					}
+					
+					function createSmallTicket(){
+						var html ="";
+						html += "<div class='smallTicketRight' ></div>"
+						html += "<h3>{0}</h3>".format(activity.name);
+						html += "<p>余票<span class='ticketCount'>{0}</span>张</p>".format(activity.tickets.length);
+						html += "<p>时间{0}<br/>@@{1}</p>".format(activity.dateTime, activity.smallLocation);
+	
+						return html;
+					}
+				
+					var html = "";
+					html += "<div class='col-xs-12 col-sm-6 col-md-4 col-lg-3'>";
+					
+					// small ticket
+					{
+						html += "<div class='ticketWrapper smallTicket shape visible-xs'>"
+						html += createSmallTicket();
+						html += "</div>"
+					}
+					
+					// large ticket
+					{
+						html += "<div class='ticketWrapper largeTicket hidden-xs'>";
+						html += "<div class='topShape shape'><div class='topDotShape'></div></div>"
+						html += createActivityBlock();
+
+						for(var i in activity.tickets){
+							html += "<div class='attachTicket'>";
+							html += "<div class='splitShape shape'>";
+							html += "<div class='splitLeft'></div>";
+							html += "<div class='splitRight'></div>";
+							html += "<div class='splitDots'>"
+							for(var j = 0; j < 20; j++){
+								html += "&bull;";
+							}
+							html += "</div>";
+							html += "</div>";
+							html += createTicketBlock(activity.tickets[i]);
+							html += "</div>";
+						}
+				
+						html += "<div class='botShape shape'></div>";
+						html += "</div>";
+					}
+					html += "</div>";
+					html += "\n\n\n";
+
+					var node = $(html);
+					node.find(".shape").css("background-color",cssRGB(r,g,b));
+					node.find(".shape").css("border-color",cssRGB(r,g,b));
+
+					onCreateComplete(activity, node);
+				});
+			}
+
+			</script> 
+			
+			<script type="text/javascript">
+				@for(t <- ticket){
+					
+					registerTicket(						
+						{ // activity
+							id: "@t.activity.id",
+							name: "@t.activity.name" ,
+							dateTime: "@t.activity.date_time" ,
+							location: "@t.activity.GetVenueFull()" ,
+							smallLocation: "@t.activity.GetVenueName()",
+							image : "@t.activity.image",
+							tickets : [],
+						},
+						{ // ticket
+							id: "@t.id" ,
+							price: "@t.price" ,
+							dateTime: "@t.date_time" ,
+							type: "@t.type_name" ,
+							qrcode: "@t.qrcode",
+							checked: @t.checked,
+							checkedTime: "@t.checked_time",
+						}
+					);
+					
+				}
+
+
+				function showOne(largeTicket){
+					$(".smallTicket").addClass("hidden-xs");
+					$(".largeTicket").addClass("hidden-xs");
+					largeTicket.removeClass("hidden-xs");
+
+				}
+				function showAll(){
+					$(".smallTicket").removeClass("hidden-xs");
+					$(".largeTicket").addClass("hidden-xs");
+				}
+
+				for(var a in dataMap){
+
+
+					var activity = dataMap[a];
+					createTicketTag(activity, function(activity,nd){
+
+						$("#ticketContainer").append(nd);
+
+
+						var smallTicket = activity.smallTicket = nd.find(".smallTicket");
+						var largeTicket = activity.largeTicket = nd.find(".largeTicket");
+
+
+						var attachTicket = nd.find(".attachTicket");
+
+						for(var i = 0; i < activity.tickets.length; i++){
+							var t = activity.tickets[i];
+							t.attachTicket = attachTicket[i];
+
+						}
+
+						smallTicket.click(function(){
+							//showOne(largeTicket, activity.id);
+							$(".selEvents").val(activity.id);
+							$(".selEvents").change();
+						});
+
+						largeTicket.click(function(){
+							$(".selEvents").val("all");
+							$(".selEvents").change();
+						});
+
+					});
+
+				}
+
+
+				var isShowing = true;
+				var text = ["显示已用票", "隐藏已用票"];
+
+				$(".showHideBtn input").click(function(){
+
+
+					for(var a in dataMap){
+						var activity = dataMap[a];
+
+						var count = 0;
+
+						activity.tickets.forEach(function(e){
+							if(isShowing && e.checked){
+								$(e.attachTicket).hide();
+							}else{
+								$(e.attachTicket).show();
+								count ++;
+							}
+						});
+
+
+						var smallTicket = activity.smallTicket;
+						smallTicket.find('.ticketCount').html(count);
+						if(count == 0 || $(".selEvents").val() != "all"){
+							smallTicket.addClass("hidden-xs");
+						}else{
+							smallTicket.removeClass("hidden-xs");
+						}
+					}
+
+					isShowing = !isShowing;
+
+					this.value = text[isShowing? 1 : 0 ];
+				});
+
+				$(".backBtn input").click(function(){
+                    $(".selEvents").val("all");
+                    $(".selEvents").change();
+				});
+
+				$(".selEvents").change(function(){
+					var value = this.value;
+					if(value == "all"){
+						showAll();
+
+						$(".backBtn").addClass("hidden-xs");
+						$(".showHideBtn").removeClass("hidden-xs");
+					}else{
+						showOne(dataMap[this.value].largeTicket);
+
+						$(".backBtn").removeClass("hidden-xs");
+						$(".showHideBtn").addClass("hidden-xs");
+					}
+				});
+			</script>
+			<!-- 
+			<div class="jumbotron">
+		    	<h4>您可以长按二维码保存图片作为票据</h4>
+		    </div>
+		   
+		    -->
+		    
+		}else{
+	    	<div class="jumbotron">
+	    		<h1>您还没有购买票</h1>
+	    	</div>
+	    }
+    
+     </div>
+    
+    
+}

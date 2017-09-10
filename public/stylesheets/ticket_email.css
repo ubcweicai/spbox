@@ -1,0 +1,100 @@
+
+body {    
+  background-color: #f9f9f9;
+  color:#666;
+}
+.logo{
+  margin: 3% 0 5%;
+}
+
+.logo img{
+  min-width: 50px;
+  max-width: 15%;
+  margin: 0px 80% 0px 0%;
+}
+
+.center{
+  text-align:center;
+  margin: 0 auto;
+}
+.adv{
+  width: 120%;
+  margin-left: -10%;
+}
+
+
+/* =================== DETAIL ================== 
+============================================== */
+.heading{
+  font-size: 20px;
+  font-weight: 350;
+}
+
+.title{
+  font-size: 20px;
+  font-weight: 350;
+  color: #f8a63a;
+}
+
+.signiture{
+  width: 25%;
+}
+/*.discribe*/
+
+
+
+/* =================== TICKET ================== 
+============================================== */
+.ticket{
+  background-color: #ededed;
+  padding: 5%;
+  width: 100%;
+}
+.ticketOutline{
+  width: 100%;
+  margin-bottom: -15px;
+}
+
+.ticketOutlineB{
+  width: 100%;
+  margin-top: -18px;
+}
+
+.head{
+  font-size: 20px;
+}
+
+.subHeading{
+  font-size: 16px;
+}
+.divider{
+  padding: 15px;
+  border-bottom: medium dotted #f9f9f9;
+}
+.ticketNumber{
+  padding: 3% 0;
+}
+
+.clear{
+  clear: both;
+}
+
+/* ================ FOOTER ===================
+============================================== */
+
+footer {
+  margin-top: 5%;
+  font-weight: 200;
+  clear:both;
+  font-size: 12px;
+  display:block;
+  position: relative;
+  text-align: center;  
+  width: 100%;
+}
+
+a.company:link{
+  color:#888;
+  text-decoration: underline;
+}
+

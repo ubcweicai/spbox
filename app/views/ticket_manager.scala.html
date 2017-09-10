@@ -1,0 +1,118 @@
+@(message: String)(aid:String)(ticket: List[Ticket])(checked:Long)(activity: List[Activity])
+
+@main(message) {
+
+	<div class="jumbotron">
+
+		<div class="row">
+			<div class="col-md-offset-1 col-md-4">
+				<div class="bottom-padding-5">
+					<input class="filter-btn showHideBtn" type="button" id="no-checked-only" value="隐藏/显示已剪票据">
+				</div>
+			</div>
+
+			<div class="col-md-offset-2 col-md-5">
+				<div class="bottom-padding-5">
+					<select class="form-control selectpicker" id="activity_list">
+						<option value="none">-- 请选择活动 --</option>
+						<!--<option value="all" @if(aid == "all"){selected}>全部活动</option>-->
+						@for(a <- activity) {
+							<option value="@a.id" @if(aid == a.id){selected}>@a.name</option>
+							@if(aid == a.id){
+								<script>
+									//collect ticket type
+									var ticket_type_array = [];
+									@for(i <- 0 until a.GetTicketTypeListName().length){
+										ticket_type_array.push("@a.GetTicketTypeListName()(i)");
+									}
+									//console.log(ticket_type_array);
+									//print out the activity information
+									$(document).ready(function(){
+										$("#activity_title_div").html("@a.name");
+										$("#activity_time_div").html("时间: @a.date_time");
+										$("#activity_venue_div").html("@@ @a.GetVenueBrief()");
+									});
+								</script>
+							}
+						}
+					</select>
+				</div>
+			</div>
+		</div>
+
+		<div class="row">
+			<div id="activity_title_div" class="col-sm-12 centerAlign backendTitle"> </div>
+			<div id="activity_time_div" class="col-sm-12 centerAlign"> </div>
+			<div id="activity_venue_div" class="col-sm-12 centerAlign"> </div>
+			<div id="ticketStats" class="col-sm-12 centerAlign"> 总共：@ticket.length  已剪：@checked  未剪：@(ticket.length-checked) </div>
+		</div>
+
+		<div class="row">
+
+		@if(ticket!=null){
+
+			<script>
+			for(var ticket_type in ticket_type_array) {
+
+				document.write("<div class='col-sm-12 centerAlign backendTitle2'>"+ticket_type_array[ticket_type]+"</div>");
+				document.write("<div class='col-sm-12 table-responsive' id='tickets'>");
+				document.write("<table class='table table-striped'>");
+				document.write("<thead>");
+				document.write("<tr>");
+				document.write("<th>用户名</th>");
+				document.write("<th>检票信息</th>");
+				document.write("<th>电话</th>");
+				document.write("<th>性别</th>");
+				document.write("<th>年龄</th>");
+				document.write("<th>地址</th>");
+				document.write("</tr>");
+				document.write("</thead>");
+				document.write("<tbody>");
+
+				@for(t <- ticket) {
+
+					if(ticket_type_array[ticket_type] === "@t.type_name" ) {
+						document.write("<tr class='@t.checked'>");
+						document.write("<td><a href='/user/@t.assigned_to.email/info'>@t.assigned_to.email</a></td>");
+
+						if(@t.checked==false){
+							document.write("<td><a class='filter-href showHideBtn' href='/verifyTicket?id=@t.id' role='button'>检票</a></td>");
+						}else{
+							document.write("<td>@t.GetLocalDateTime(t.checked_time)</td>");
+						}
+
+						document.write("<td>@t.assigned_to.tel</td>");
+						document.write("<td>@t.assigned_to.gender</td>");
+						document.write("<td>@t.assigned_to.age</td>");
+						document.write("<td>@t.assigned_to.address</td>");
+						document.write("</tr>");
+					}
+				}
+
+				document.write("</tbody>");
+				document.write("</table>");
+				document.write("</div>");
+
+			}
+
+			</script>
+		}
+
+		</div>
+
+	</div>
+
+	<script language="JavaScript">
+
+		$("#activity_list").change(function(){
+			var activity_id = $("#activity_list").val();
+			window.location.assign("/ticket_manager?id="+activity_id);
+		});
+
+		$("#no-checked-only").click(function(){
+			$(".true").toggle();
+		});
+
+	</script>
+
+}

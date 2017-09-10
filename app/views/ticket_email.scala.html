@@ -1,0 +1,192 @@
+@(userName: String)(activity: Activity)(type_name: String)(price: Double)(ticketCount: String)(baseUrl: String)
+
+<!doctype html>
+<html class="no-js" lang=""> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>email</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!--  http://weticket.ca/assets  -->
+        <link rel="stylesheet" href="@baseUrl/assets/stylesheets/bootstrap.min.css">
+        <link rel="stylesheet" href="@baseUrl/assets/stylesheets/bootstrap-theme.min.css">
+        <link rel="stylesheet" href="@baseUrl/assets/stylesheets/ticket_email.css">
+    </head>
+    <body>
+
+        <div class="container">
+            <div class="col-xs-12 col-sm-6 col-sm-offset-3">
+                <div class="row logo">
+                    <a href="@baseUrl"><img src="baseUrl/assets/images/logo_circle.png"></a>
+                </div>
+
+
+                <div class="col-xs-12">
+                    <p class="heading">
+            Hi, this is your registration confirmation for <br>
+                            <!-- @@ this is place for link and name of the event-->
+                        <a href="@baseUrl/activity/@activity.id?preview=false">爱的协奏曲</a>
+            </p>
+                    <p>
+                            <!-- @@ the organizer -->
+                            Organized by <a class="company" href="http://wechatgogo.com">微果</a>
+                    </p>
+                    <hr>
+                </div>
+
+                <div class="col-xs-12">
+                    <p class="heading">
+            Message from
+                        <!-- @@ the organizer-->
+                        <a href="http://wechatgogo.com">微果</a>
+                    </p>
+                    <p>
+                            <!-- @@ Message from the organizer-->
+                            Thank you for registering. See you at the show!
+                    </p>
+                    <p>
+                            <!-- @@ the Contact -->
+                            Have a question? Contact the organizer at <a href="tel:7785583900">778-558-3900</a>
+                    </p>
+                    <hr>
+                </div>
+
+                <div class="col-xs-12">
+                    <img  class="ticketOutline" src="@baseUrl/assets/images/ticketOutline.jpg">
+                    <div class="ticket">
+                        <div class="row divider">
+                            <div class="head col-xs-12 col-sm-8"> Order summery</div>
+                                <!-- @@ today's date -->
+                            <div class="col-xs-12 col-sm-4">June 17, 2015</div>
+                        </div>
+
+                        <div class="row divider">
+                            <div class="col-xs-5">活动</div>
+                            <div class="col-xs-4">票类别</div>
+                            <div class="col-xs-3">数量</div>
+                        </div>
+
+                        <div class="row divider">
+                                <!-- @@ ticket information -->
+                            <div class="col-xs-5">@activity.name</div>
+                            <div class="col-xs-4">@type_name</div>
+                            <div class="col-xs-3">@ticketCount 张</div>
+                        </div>
+
+                        <!--
+                        <div class="row divider">
+                            <div class="col-xs-12 center ticketNumber">票号： 00000000000, VIP</div>
+                            <img src="img/qrCode.jpg" class="center img-responsive" >
+                        </div>
+                        -->
+
+                        <footer>
+            This order is subject to WeTicket <a href="@baseUrl/about">Terms of Service</a>
+            </footer>
+
+                    </div>
+                    <img class="ticketOutlineB" src="@baseUrl/assets/images/ticketOutlineB.jpg">
+                </div>
+
+                <div class="col-xs-12">
+          票已自动加到您微票的票夹中，请到微票夹中查看。您可以长按二维码保存图片作为票据 <br><br>
+
+                    如果您有任何问题 欢迎致电:<a href="tel:7785583900">778-558-3900</a><br><br>
+                    感谢您选用微票购票，活动中间。
+                    <hr>
+        </div>
+
+                <div class="col-xs-12">
+                    <p class="heading"> About this event </p>
+
+                    <div class="row">
+                        <div class="col-xs-1"><span class="glyphicon glyphicon-time" aria-hidden="true"></span> </div>
+                            <!-- @@ time of the event -->
+                        <div class="col-xs-10">Wednesday, June 17, 2015 from 5:00 PM to 7:00 PM (PDT)</div>
+                    </div>
+                    <br>
+
+                    <div class="row">
+                        <div class="col-xs-1 col-md-1">
+                            <span class="glyphicon glyphicon-road" aria-hidden="true"></span>
+                        </div>
+                            <!-- @@ location of the event -->
+                        <div class="col-xs-10">Seven Dining Lounge Bar</div>
+                        <div class="col-xs-1"> </div>
+                        <div class="col-xs-10 col-sm-offset-1 col-sm-10 col-md-offset-1col-md-10">53 West Broadway,</div>
+
+                        <div class="col-xs-1"> </div>
+                        <div class="col-xs-10 col-sm-offset-1 col-sm-10 col-md-offset-1 col-md-10">Vancouver, BC</div>
+                    </div>
+
+                    <hr>
+                </div>
+
+                <div class="col-xs-12">
+                    <div class="col-xs-8 col-sm-4">
+                        <a href="@baseUrl/">
+                            <img src="@baseUrl/assets/images/accont.png" class="center img-responsive">
+                        </a>
+                    </div>
+
+                    <div class="col-xs-12 col-sm-8">
+                        <div class="head ">Your Account</div>
+                        <p>
+                            <a href="@baseUrl/">Log in</a>
+                            to manage your orders.
+                        </p>
+                    </div>
+                    <div class="clear"></div>
+                    <hr>
+                </div>
+
+                <div class="col-xs-12 adv">
+                    <div class="col-xs-12 col-sm-6">
+                        <div class="col-xs-8 col-sm-4">
+                            <a href="@baseUrl/">
+                                <img src="@baseUrl/assets/images/creatEvent.png" class="center img-responsive">
+                            </a>
+                        </div>
+
+                        <div class="col-xs-12 col-sm-8">
+                            <div class="subHeading">Create your own event</div>
+                            <div>Anyone can sell tickets or manage registration with Eventbrite.</div>
+                            <p>
+                                <a href="http://weticket.ca/">Learn More</a>
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="col-xs-12 col-sm-6">
+                        <div class="col-xs-8 col-sm-4">
+                            <a href="@baseUrl/">
+                                <img src="@baseUrl/assets/images/findMore.png" class="center img-responsive">
+                            </a>
+                        </div>
+
+                        <div class="col-xs-12 col-sm-8">
+                            <div class="subHeading">Discover great events</div>
+                            <div>Find local events that match your passions.</div>
+                            <p><a href="http://weticket.ca/">Log in</a></p>
+                        </div>
+                    </div>
+                    <div class="clear"></div>
+                    <hr>
+                </div>
+
+            </div>
+        </div> <!-- /container -->
+
+        <footer>
+      This email was sent to you by
+            <a href="@baseUrl/">weTicket</a> <br>
+            120B-13988 Maycrest Way Richmond<br>
+            <span class="glyphicon glyphicon-copyright-mark" aria-hidden="true"></span>
+            Copyright 2015 Spark Technology Inc.
+        </footer>
+
+            <!--scripts-->
+
+    </body>
+</html>

@@ -1,0 +1,124 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+
+GET           /                                                            controllers.GeneralAction.indexUI()
+
+GET           /about                                                       controllers.GeneralAction.aboutUI()
+
+GET           /clause                                                      controllers.GeneralAction.clauseUI()
+
+GET           /activity/:id                                                controllers.GeneralAction.getActivityUI(id: String, preview:String)
+
+GET           /api/v1/searchEmail                                          controllers.GeneralAction.searchEmail(email: String)
+
+GET           /api/v1/checkRole                                            controllers.GeneralAction.checkRole()
+
+GET           /user/:email/info                                            controllers.AuthenticatedAction.viewUserInfoUI(email:String)
+
+GET           /user/:email/resendUserVerificationEmail                     controllers.GeneralAction.resendUserVerificationEmail(email:String)
+
+GET           /tickets                                                     controllers.AuthenticatedAction.ticketsUI()
+
+GET           /api/v1/createTicket                                         controllers.AuthenticatedAction.createTicket(activity_id:String, type_name:String, quantity:String, token:String)
+
+GET           /purchaseSuccess                                             controllers.AuthenticatedAction.purchaseSuccessUI()
+
+GET           /verifyTicket                                                controllers.AuthenticatedAction.verifyTicketUI()
+
+GET           /api/v1/addCity/:name/:country/:timeZone                     controllers.AdminAction.addCity(name:String, country:String, timeZone:String)
+
+GET           /api/v1/addCity2/:name/:country/:timeZone1/:timeZone2        controllers.AdminAction.addCity2(name:String, country:String, timeZone1:String, timeZone2:String)
+
+GET           /api/v1/getConfig                                            controllers.AdminAction.getConfig(name:String)
+
+GET           /api/v1/setConfig                                            controllers.AdminAction.setConfig(name:String, value:String)
+
+GET           /create/:id                                                  controllers.AuthenticatedAction.createUI(id: String)
+
+POST          /createActivityUI                                            controllers.AuthenticatedAction.createActivityUI()
+
+GET           /register                                                    controllers.GeneralAction.registerUI()
+
+GET           /passwordReset                                               controllers.GeneralAction.getPasswordResetUI(token: String)
+
+GET           /redirect                                                    controllers.GeneralAction.redirectWithAuthenticateToken(token: String, redirectUrl: String)
+
+POST          /api/v1/resetPassword                                        controllers.GeneralAction.passwordReset()
+
+GET           /api/v1/deleteActivity                                       controllers.TicketAction.deleteActivity(id: String)
+
+GET           /api/v1/deleteUser                                           controllers.AdminAction.deleteUser()
+
+GET           /api/v1/deleteArticle                                        controllers.AdminAction.deleteArticle()
+
+POST          /api/v1/editArticle                                          controllers.AdminAction.editArticle()
+
+GET           /cutTicket                                                   controllers.TicketAction.cutTicketUI()
+
+GET           /activity_manager                                            controllers.TicketAction.activityManagerUI()
+
+GET           /user_manager                                                controllers.AdminAction.userManagerUI(role:String)
+
+GET           /article_manager                                             controllers.AdminAction.articleManagerUI(atype:String)
+
+GET           /edit_article                                                controllers.AdminAction.editArticleUI()
+
+GET           /city_manager                                                controllers.AdminAction.cityManagerUI(atype:String)
+
+GET           /edit_city                                                   controllers.AdminAction.editCityUI()
+
+GET           /api/v1/deleteCity                                           controllers.AdminAction.deleteCity()
+
+POST          /api/v1/editCity                                             controllers.AdminAction.editCity()
+
+GET           /ticket_manager                                              controllers.TicketAction.ticketManagerUI()
+
+PUT           /api/v1/changeStar/:id                                       controllers.AdminAction.changeStar(id:String)
+
+GET           /changePassword                                              controllers.AuthenticatedAction.getChangePasswordUI()
+
+GET           /activity/:id/ticket-types                                   controllers.TicketAction.ticketTypesUI(id: String)
+
+GET           /activity/:id/email-settings                                 controllers.TicketAction.getEmailSettingsUI(id: String)
+
+PUT           /api/v1/activity/:id/email-settings                          controllers.TicketAction.saveEmailSettings(id: String)
+
+GET           /api/v1/publish/:id                                          controllers.AuthenticatedAction.publishActivity(id: String)
+
+PUT           /api/v1/user/info                                            controllers.AuthenticatedAction.updateUserInfo()
+
+GET           /api/v1/user/info                                            controllers.AuthenticatedAction.getUserInfo()
+
+DELETE        /api/v1/activity/:id/image                                   controllers.TicketAction.deleteActivityImage(id: String)
+
+DELETE        /api/v1/activity/:id/description-image                       controllers.TicketAction.deleteActivityDescriptionImage(id: String)
+
+GET           /api/v1/login                                                controllers.GeneralAction.login(user:String, password:String)
+
+GET           /api/v1/logout                                               controllers.GeneralAction.logout()
+
+POST          /api/v1/register                                             controllers.GeneralAction.register()
+
+PUT           /api/v1/changePassword                                       controllers.AuthenticatedAction.changePassword()
+
+POST          /api/v1/requestPasswordReset                                 controllers.GeneralAction.sendPasswordResetRequest()
+
+POST          /api/v1/image                                                controllers.TicketAction.addImage()
+
+GET           /api/v1/getUnprocessedInfo                                   controllers.AdminAction.GetUnProcessedInfo()
+
+GET           /system_manager                                              controllers.AdminAction.systemManagerUI()
+
+GET           /image/:id                                                   controllers.GeneralAction.GetImageUI(id: String)
+
+GET           /verify_account                                              controllers.GeneralAction.verifyUserEmail(token: String)
+
+GET           /imageOperation/tint                                         controllers.ImageOperation.tintImage()
+
+GET           /imageOperation/checkedImage                                 controllers.ImageOperation.checkedImage()
+
+# Map static resources from the /public folder to the /assets URL path
+GET           /assets/*file                                                controllers.Assets.at(path="/public", file)

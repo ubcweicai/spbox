@@ -1,0 +1,318 @@
+@(message: String)(activity: List[Activity])
+
+	@main(message) {
+
+
+		<script type="text/javascript">
+
+		function squareCut(imgNode, imgSrc){
+
+			var tmp = document.createElement("img");
+			tmp.src = imgSrc;
+			tmp.onload = function(){
+
+				var w = tmp.width;
+				var h = tmp.height;
+
+				if(w == h){
+					imgNode.src = imgSrc;
+				}else{
+					var size = w < h ? w : h;
+
+					var canvas = document.createElement("canvas");
+					canvas.width = size;
+					canvas.height = size;
+
+					var dx = w - size;
+					var dy = h - size;
+
+					canvas.getContext("2d").drawImage(tmp, -dx/2, -dy/2,w,h);
+					imgNode.src = canvas.toDataURL();
+				}
+			}
+		}
+
+	</script>
+
+		<script type="text/javascript">
+		/* derive the types, cities and datatime for all activity*/
+		var types = [];
+		var cities = [];
+		var datatime = [];
+		@for(a <- activity) {
+			if(types.indexOf("@a.folder") === -1){
+				types.push("@a.folder");
+			}
+			if(cities.indexOf("@a.GetVenueCity()") === -1){
+				cities.push("@a.GetVenueCity()");
+
+			}
+		}
+
+		</script>
+
+		<div class="jumbotron">
+			<div class="row nav-filter">
+				<div class="form-group form-group-sm">
+					<div class="col-xs-4">
+						<select class="form-control selectpicker" name="status" id="type_selector">
+							<option value="all" selected>类别</option>
+							<option value="all">全部</option>
+							<script>
+						for(var t in types)
+						{
+							document.write("<option value="+types[t]+">"+types[t]+"</option>");
+						}
+					</script>
+						</select>
+					</div>
+					<div class="col-xs-4">
+						<select class="form-control selectpicker" name="status" id="city_selector">
+							<option value="all" selected>位置</option>
+							<option value="all">全部</option>
+							<script>
+						for(var c in cities)
+						{
+							document.write("<option value="+cities[c].replace(" ","%20")+">"+cities[c]+"</option>");
+						}
+					</script>
+						</select>
+					</div>
+					<div class="col-xs-4">
+						<select class="form-control selectpicker" name="status" id="date_selector">
+							<option value="all" selected>时间</option>
+							<option value="all">全部</option>
+							<option value="today">今天</option>
+							<option value="tomorrow">明天</option>
+							<option value="week">一周内</option>
+							<option value="month">一月内</option>
+						</select>
+					</div>
+				</div>
+			</div>
+
+			<div class="row">
+					<!-- Main component for a primary marketing message or call to action -->
+				@for(a <- activity) {
+
+					<div id="activity_@a.id" class="margin col-xs-12 col-sm-6 col-md-4 status_@a.status">
+						<img class="img-responsive expiredStamp" src="@routes.Assets.at("images/expired.png")">
+						<div class="activity-block grid-view">
+							<a href="/activity/@a.id?preview=false" >
+								<div class="title">
+									<h3>@a.name</h3>
+								</div>
+								<div class="event" id="event_@a.id">
+									<div class="logo_image">
+										<img id="@a.id" class="img-responsive desaturate" />
+										<script type="text/javascript">
+									squareCut($("#@a.id")[0],"@a.image")
+								</script>
+									</div>
+
+									<div id="title_@a.id" class="list-title">
+										<h3>@a.name</h3>
+									</div>
+							<script>
+								function rgb2hex(rgb){
+									var r = parseInt(rgb[0],10);
+									var g = parseInt(rgb[1],10);
+									var b = parseInt(rgb[2],10);
+									var threshold = 210;
+									var maxvalue = Math.max(Math.max(r,g),b);
+									if( maxvalue <= threshold )
+									{
+										return "#" + r.toString(16) + g.toString(16) + b.toString(16);
+									} else {
+										var difference = maxvalue - threshold;
+										return "#" + (r-difference).toString(16)
+												   + (g-difference).toString(16)
+												   + (b-difference).toString(16);
+									}
+								}
+								getPrimaryColor("@a.image", function(color){
+									var hexcolor = rgb2hex(color);
+									$('#title_@a.id').css('background-color', hexcolor);
+								});
+
+							</script>
+									<div class="date">
+										<h5>@a.date_time</h5>
+										<h5>@@ @a.GetVenueBrief()</h5>
+									</div>
+									<div class="hr"></div>
+									<div class="description"><h5>@a.brief_description</h5></div>
+								</div>
+							</a>
+
+							<div class="hr-nav"></div>
+								<!--
+					<div class="admin-controller">
+						<a class="btn btn-lg btn-info admin-controller" href="/create?id=@a.id" role="button">编辑活动</a>
+						</div>
+						-->
+					</div>
+				</div> <!-- /container -->
+			}
+		</div>
+		</div>
+
+		<script type="text/javascript">
+
+$(document).ready(function(){
+
+	$("#viewchange").addClass("indexshow");
+	$("#list-icon").addClass("indexshow");
+	$("#grid-icon").removeClass("indexshow");
+
+	var toGridView = function(){
+		$("#grid-icon").removeClass("indexshow");
+		$("#list-icon").addClass("indexshow");
+		$(".activity-block").addClass("grid-view");
+		$(".activity-block").removeClass("list-view");
+	};
+
+	var toListView = function(){
+		$("#grid-icon").addClass("indexshow");
+		$("#list-icon").removeClass("indexshow");
+		$(".activity-block").removeClass("grid-view");
+		$(".activity-block").addClass("list-view");
+	};
+
+	$("#viewchange").click(function(){
+
+		if($("#grid-icon").is(":visible")){
+			//grid view
+			toGridView();
+
+		} else if($("#list-icon").is(":visible")){
+			//list view
+			toListView();
+		}
+
+	});
+});
+
+		function switchView(){
+			var allActivitySet = [];
+			var hideActivitySet = [];
+
+			var selected_type = $("#type_selector").val();
+			var selected_city = $("#city_selector").val();
+			var selected_date = $("#date_selector").val();
+			//console.log("selected => "+selected_city);
+
+			@for(a <- activity) {
+
+				allActivitySet.push("#activity_@a.id");
+
+				//filter for type to get hide activity list
+				if( selected_type !== "all")
+				{
+					if( "@a.folder" !== selected_type) {
+						if(hideActivitySet.indexOf("#activity_@a.id") === -1){
+							hideActivitySet.push("#activity_@a.id");
+						}
+					}
+				}
+				//filter for city to get hide activity list
+				if( selected_city !== "all")
+				{
+					if( "@a.GetVenueCity()".replace(" ","%20") !== selected_city) {
+						if(hideActivitySet.indexOf("#activity_@a.id") === -1){
+							hideActivitySet.push("#activity_@a.id");
+						}
+					}
+				}
+				//filter for datetime to get hide activity list
+				if( selected_date != "all")
+				{
+					var startDateTime = new Date("@a.start_date_time");
+					var startYear = startDateTime.getFullYear();
+					var startMonth = startDateTime.getMonth()+1;
+					var startDay = startDateTime.getDate();
+					var nowDateTime = new Date(Date.now());
+					var nowYear = nowDateTime.getFullYear();
+					var nowMonth = nowDateTime.getMonth()+1;
+					var nowDay = nowDateTime.getDate();
+
+					//console.log(startYear+" "+startMonth+" "+startDay);
+					//console.log(nowYear+" "+nowMonth+" "+nowDay);
+
+					var activityHide = false;
+
+					if(selected_date === "today") {
+
+						if((startYear === nowYear)&(startMonth === nowMonth)&(startDay === nowDay)){
+							//console.log(startYear+" "+startMonth+" "+startDay);
+							//console.log(nowYear+" "+nowMonth+" "+nowDay);
+						}else{
+							activityHide = true;
+						}
+					}
+
+					if(selected_date === "tomorrow") {
+						var tomorrowDateTime = new Date(Date.now() + 24 * 60 * 60 * 1000);
+						//console.log(tomorrowDateTime.toString());
+						var tomorrowYear = tomorrowDateTime.getFullYear();
+						var tomorrowMonth = tomorrowDateTime.getMonth() + 1;
+						var tomorrowDay = tomorrowDateTime.getDate();
+
+						if((startYear === tomorrowYear)&(startMonth === tomorrowMonth)&(startDay === tomorrowDay)){
+
+						}else{
+							activityHide = true;
+						}
+					}
+
+					if(selected_date === "week") {
+
+						var timeDifference = startDateTime - Date.now();
+
+						if((timeDifference < 7 * 24 * 60 * 60 * 1000)&(timeDifference >= 0)){
+
+						}else{
+							activityHide = true;
+						}
+					}
+
+					if(selected_date === "month") {
+
+						var timeDifference = startDateTime - Date.now();
+
+						if((timeDifference < 30 * 24 * 60 * 60 * 1000)&(timeDifference >= 0)){
+
+						}else{
+							activityHide = true;
+						}
+					}
+
+					if( activityHide == true ) {
+						if(hideActivitySet.indexOf("#activity_@a.id") === -1){
+							hideActivitySet.push("#activity_@a.id");
+						}
+					}
+
+				}
+			}
+
+			//console.log("-------------");
+			//console.log(hideActivitySet);
+
+			for(var all in allActivitySet){
+				$(allActivitySet[all]).show();
+			}
+
+			for(var hide in hideActivitySet){
+				$(hideActivitySet[hide]).hide();
+			}
+
+		}
+
+		$("#type_selector").change(switchView);
+		$("#city_selector").change(switchView);
+		$("#date_selector").change(switchView);
+
+</script>
+
+	}

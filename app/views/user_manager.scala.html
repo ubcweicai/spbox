@@ -1,0 +1,56 @@
+@(message: String)(role:String)(user: List[User]) @main(message) {
+
+<div class="form-group form-group-sm">
+	<div class="col-sm-2 control-label">
+		<label>活动：</label>
+	</div>
+	<div class="col-sm-10">
+		<div>
+			<select class="form-control" id="role_list">
+				<option value="all" @if(role == "all"){selected}>全部</option>
+				<option value="admin" @if(role == "admin"){selected}>管理员</option>
+				<option value="org" @if(role == "org"){selected}>活动组织者</option>
+				<option value="user" @if(role == "user"){selected}>用户</option>
+				<option value="blocked" @if(role == "blocked"){selected}>被屏蔽</option>
+
+			</select>
+		</div>
+	</div>
+</div>
+<br>
+<div class="col-sm-12 table-responsive">	
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Email</th>
+				<th>Name</th>
+				<th>Role</th>
+				<th>Operations</th>
+			</tr>
+		</thead>
+		<tbody>
+			@for(u <- user) {
+			<tr>
+				<td>@u.email @if(u.verified){ <span class="glyphicon glyphicon-ok"></span>}</td>
+				<td>@u.name</td>
+				<td>@u.role</td>
+				<td><a class="btn btn-lg btn-info admin-controller"
+					href="/register?email=@u.email" role="button">编辑</a></td>
+			</tr>
+			}
+	
+		</tbody>
+	</table>
+</div>
+
+<script language="JavaScript">
+
+$("#role_list").change(function(){
+	var role = $("#role_list").val();
+	window.location.assign("/user_manager?role="+role);
+});
+
+</script>
+
+
+}

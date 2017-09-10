@@ -1,0 +1,182 @@
+@(message: String)(a: Activity)(ticketType: List[TicketType])
+
+@main(message) {
+
+<script>
+$(document).ready(function(){
+
+ if(@ticketType.isEmpty){
+ $("#page-redirect-option").hide();
+ }
+
+ });
+
+function addTicketType()
+{
+	var name= $("#ticket_name_0").val().trim();
+    var price = $("#ticket_price_0").val();
+    var quantity = $("#ticket_quantity_0").val();
+    var taxIncluded = $("#ticket_taxIncluded_0").val();
+    
+    if(! /^[a-zA-Z0-9\u0391-\uFFE5]+$/.test(name)){
+       alert("票务类型名称不得包含符号");
+       return false;
+     }
+    
+    if (name==null || name.trim()==""|| price==null || price.trim()==""|| quantity==null || quantity.trim()==""){
+      alert("必填项不能为空");
+      return false;
+    }
+
+
+    if(parseFloat(price) < 0 || parseFloat(quantity) < 0){
+     alert("票据单价或数量不得为负数");
+      return false;
+    }
+
+	$.rest("POST",
+			"/api/v1/activity/@a.id/ticket-types",
+			{name: name, price: price, quantity: quantity, taxIncluded:taxIncluded},
+	 		function(data){
+	 			window.location.assign("/activity/@a.id/ticket-types");
+	 		},
+			function(){alert(data.responseText);});
+
+
+}
+
+function updateTicketType(id)
+{
+    var name= $("#ticket_name_"+id).val();
+    var price = $("#ticket_price_"+id).val();
+    var quantity = $("#ticket_quantity_"+id).val();
+    var taxIncluded = $("#ticket_taxIncluded_"+id).val();
+    
+    if(! /^[a-zA-Z0-9\u0391-\uFFE5]+$/.test(name)){
+       alert("票务类型名称不得包含符号");
+       return false;
+     }
+    
+    if (name==null || name.trim()=="" ||price==null || price.trim()==""|| quantity==null || quantity.trim()==""){
+      alert("必填项不能为空");
+      return false;
+    }
+
+    if(parseFloat(price) < 0 || parseFloat(quantity) < 0){
+     alert("票据单价或数量不得为负数");
+      return false;
+    }
+
+	$.rest("PUT",
+		"/api/v1/ticket-types/" + id,
+		{name:name, price:price, quantity: quantity, taxIncluded:taxIncluded},
+		function(data){ alert("修改成功");},
+		function(data){ alert(data.responseText);});
+
+}
+
+function deleteTicketType(id)
+{
+	$.rest("DELETE",
+		"/api/v1/ticket-types/" + id,
+		{},
+		function(data){
+			window.location.assign("/activity/@a.id/ticket-types");
+		},function(data){
+			alert(data.responseText);
+		});
+}
+</script>
+
+    <!-- Main component for a primary marketing message or call to action -->
+    
+    <form class="form-horizontal" onsubmit="return false;">
+    
+      <div class="form-group form-group-sm">
+	    <label class="col-sm-2 control-label" for="formGroupInputSmall">活动编号</label>
+	    <div class="col-sm-10">
+	      <input class="form-control" type="text" name="id" placeholder="" value="@if(a!=null){@a.id}" readonly>
+	    </div>
+	  </div>
+	  
+	  <div class="form-group form-group-sm">
+	    <label class="col-sm-2 control-label" for="formGroupInputSmall">活动名称</label>
+	    <div class="col-sm-10">
+	      <input class="form-control" type="text" name="name" placeholder="Activity Name" value="@if(a!=null){@a.name}" readonly>
+	    </div>
+	  </div>
+
+
+
+
+	  @for(tt <- ticketType) {
+	    <div class="form-group form-group-sm">
+	    <label class="col-sm-2 control-label" for="formGroupInputSmall">票务类型</label>
+	    <div class="col-sm-2">
+	         <input class="form-control" type="text" name="ticket_name_@tt.id" id="ticket_name_@tt.id" placeholder="Name" value="@tt.type_name"/>
+	    </div>
+	    <div class="col-sm-2">
+	      <input class="form-control" type="number" name="ticket_price_@tt.id" id="ticket_price_@tt.id" placeholder="Price" value="@tt.price" min="0"/>
+	    </div>
+	    <div class="col-sm-2">
+	      <input class="form-control" type="number" name="ticket_quantity_@tt.id" id="ticket_quantity_@tt.id" placeholder="Quantity" value="@tt.quantity" min="0"/>
+	    </div>
+		  <div class="col-sm-2">
+			  <div>
+				  <select class="form-control" name="ticket_taxIncluded_@tt.id" id="ticket_taxIncluded_@tt.id">
+					  <option value="false" @if(!tt.taxIncluded) {selected}>票价未含税</option>
+					  <option value="true"  @if(tt.taxIncluded) {selected}>票价已含税</option>
+				  </select>
+			  </div>
+		  </div>
+	    <div class="col-sm-2">
+	       <button class="btn btn-info" onclick="updateTicketType('@tt.id')">更新</button>
+	    
+	       <button class="btn btn-danger" onclick="deleteTicketType('@tt.id')" @if(tt.booked > 0){disabled}>删除</button>
+	    </div>
+	  </div>
+	  }
+
+
+	<div class="form-group form-group-sm">
+		<label class="col-sm-2 control-label" for="formGroupInputSmall">创建票务类型</label>
+		<div class="col-sm-2">
+			<input class="form-control" type="text" name="ticket_name_0" id="ticket_name_0" placeholder="Ticket Type" />
+		</div>
+		<div class="col-sm-2">
+			<input class="form-control" type="number" name="ticket_price_0" id="ticket_price_0" placeholder="Price" min="0"/>
+		</div>
+		<div class="col-sm-2">
+			<input class="form-control" type="number" name="ticket_quantity_0" id="ticket_quantity_0" placeholder="Quantity" min="0"/>
+		</div>
+		<div class="col-sm-2">
+			<div>
+				<select class="form-control" name="ticket_taxIncluded_0" id="ticket_taxIncluded_0">
+					<option value="false">票价未含税</option>
+					<option value="true">票价已含税</option>
+				</select>
+			</div>
+		</div>
+		<div class="col-sm-2">
+			<button type="submit" class="btn btn-primary" onclick="addTicketType()">添加</button>
+		</div>
+	</div>
+
+    <div class="form-group form-group-sm" id="page-redirect-option">
+	    <div class="col-sm-offset-2 col-sm-10">
+	      <button class="btn btn-success" onclick="location.href = '/activity_manager'">返回活动管理页面</button>
+	    </div>
+	</div>
+	
+    
+    	
+	</form>
+	
+    <script>
+    if($("#organizer").val()=="")
+    {
+    	var sId = window.loginUser;
+    	$("#organizer").val(sId);
+    }
+    </script>
+}
